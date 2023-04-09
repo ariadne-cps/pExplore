@@ -138,6 +138,6 @@ if(NOT TARGET pexplore)
     endif()
 
     add_subdirectory(submodules)
-    target_link_libraries(pexplore conclog pronest betterthreads)
+    target_link_libraries(pexplore conclog pronest betterthreads utility)
 
 endif()
