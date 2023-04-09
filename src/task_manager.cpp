@@ -107,7 +107,7 @@ void TaskManager::print_best_rankings() const {
         auto size = _best_rankings.size();
         file << "x = [1:" << size << "];\n";
         Map<size_t,List<int>> values;
-        List<int> soft_failures;
+        List<size_t> soft_failures;
         for (size_t i=0; i<dimension; ++i) values.insert(make_pair(i,List<int>()));
         for (auto ranking : _best_rankings) {
             auto point = ranking.point();
