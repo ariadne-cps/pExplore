@@ -64,7 +64,7 @@ class TestTaskRankingParameter {
 
     void test_scalar_ranking_parameter_creation() {
         ScalarRankingParameter<R> p("chosen_step_size", OptimisationCriterion::MAXIMISE,
-                                    [](I const& input, O const& output, DurationType const& duration) { return output.o + duration.count() + input.i1; });
+                                    [](I const& input, O const& output, DurationType const& duration) { return static_cast<double>(output.o + duration.count() + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
         auto cost = p.rank(input, output, _duration);
@@ -77,8 +77,7 @@ class TestTaskRankingParameter {
 
     void test_vector_ranking_parameter_creation() {
         VectorRankingParameter<R> p("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                    [](I const& input, O const& output, DurationType const& duration, size_t const& idx) {
-                                                return output.o + duration.count() + input.i2[idx]; },
+                                    [](I const& input, O const& output, DurationType const& duration, size_t const& idx) { return static_cast<double>(output.o + duration.count() + input.i2[idx]); },
                                     [](I const& input) { return input.i2.size(); });
         auto input = I(2,{1,2});
         auto output = O(7);
@@ -93,10 +92,9 @@ class TestTaskRankingParameter {
 
     void test_task_ranking_parameter_set() {
         ScalarRankingParameter<R> p1("chosen_step_size", OptimisationCriterion::MAXIMISE,
-                                     [](I const& input, O const& output, DurationType const& duration) { return output.o + duration.count() + input.i1; });
+                                     [](I const& input, O const& output, DurationType const& duration) { return static_cast<double>(output.o + duration.count() + input.i1); });
         VectorRankingParameter<R> p2("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                     [](I const& input, O const& output, DurationType const& duration, size_t const& idx) {
-                                          return output.o + duration.count() + input.i2[idx]; },
+                                     [](I const& input, O const& output, DurationType const& duration, size_t const& idx) { return static_cast<double>(output.o + duration.count() + input.i2[idx]); },
                                      [](I const& input) { return input.i2.size(); });
 
         List<TaskRankingParameter<R>> ps = {p1, p2};

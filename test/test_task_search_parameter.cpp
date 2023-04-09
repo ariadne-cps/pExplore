@@ -142,7 +142,7 @@ class TestTaskSearchParameter {
         UTILITY_TEST_EQUALS(points.size(),1);
         points = point.make_random_shifted(3);
         UTILITY_TEST_EQUALS(points.size(),3);
-        points = point.make_random_shifted(space.total_points());
+        points = point.make_random_shifted(static_cast<unsigned int>(space.total_points()));
         UTILITY_TEST_EQUALS(points.size(),space.total_points());
     }
 
