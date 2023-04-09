@@ -1,7 +1,7 @@
 set(LIBRARY_NAME PEXPLORE_SRC)
 
 add_library(${LIBRARY_NAME} OBJECT
-        concurrency_manager.cpp
+        task_manager.cpp
         task_execution_ranking.cpp
         )
 

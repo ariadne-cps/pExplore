@@ -1,42 +1,46 @@
 /***************************************************************************
- *            concurrency/task.tpl.hpp
+ *            task.tpl.hpp
  *
- *  Copyright  2007-20  Luca Geretti
+ *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file concurrency/task.tpl.hpp
+/*! \file task.tpl.hpp
  *  \brief Base code for a task.
  */
 
-#ifndef ARIADNE_TASK_TPL_HPP
-#define ARIADNE_TASK_TPL_HPP
+#ifndef PEXPLORE_TASK_TPL_HPP
+#define PEXPLORE_TASK_TPL_HPP
 
-#include "../utility/container.hpp"
-#include "../utility/pointer.hpp"
-#include "../utility/string.hpp"
+#include "utility/container.hpp"
+#include "utility/string.hpp"
+#include "pronest/configuration_search_space.hpp"
 #include "task_interface.hpp"
 #include "task_ranking_space.hpp"
-#include "configuration/configuration_search_space.hpp"
 
-namespace Ariadne {
+
+namespace pExplore {
 
 class ConfigurationSearchPoint;
 class TaskExecutionRanking;
@@ -51,19 +55,19 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     typedef TaskOutput<R> OutputType;
   protected:
     ParameterSearchTaskBase(String const& name)
-        : _name(name), _ranking_space(SharedPointer<TaskRankingSpace<R>>(TaskRankingSpaceBuilder<R>().build().clone())) {}
+        : _name(name), _ranking_space(shared_ptr<TaskRankingSpace<R>>(TaskRankingSpaceBuilder<R>().build().clone())) {}
   public:
     String name() const override { return _name; }
     TaskRankingSpace<R> const& ranking_space() const override { return *_ranking_space; }
-    Void set_ranking_space(TaskRankingSpace<R> const& space) override { _ranking_space.reset(space.clone()); }
+    void set_ranking_space(TaskRankingSpace<R> const& space) override { _ranking_space.reset(space.clone()); }
 
     Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> const& data, InputType const& input) const override { return _ranking_space->rank(data, input); }
 
   private:
     String const _name;
-    SharedPointer<TaskRankingSpace<R>> _ranking_space;
+    shared_ptr<TaskRankingSpace<R>> _ranking_space;
 };
 
-} // namespace Ariadne
+} // namespace pExplore
 
-#endif // ARIADNE_TASK_TPL_HPP
+#endif // PEXPLORE_TASK_TPL_HPP

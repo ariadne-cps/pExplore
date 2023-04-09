@@ -1,44 +1,53 @@
 /***************************************************************************
- *            concurrency/task_interface.hpp
+ *            task_interface.hpp
  *
  *  Copyright  2007-20  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file concurrency/task_interface.hpp
+/*! \file task_interface.hpp
  *  \brief The interface for tasks.
  */
 
-#ifndef ARIADNE_TASK_INTERFACE_HPP
-#define ARIADNE_TASK_INTERFACE_HPP
+#ifndef PEXPLORE_TASK_INTERFACE_HPP
+#define PEXPLORE_TASK_INTERFACE_HPP
 
 #include <chrono>
-#include "../utility/container.hpp"
-#include "../utility/pointer.hpp"
-#include "../utility/string.hpp"
+#include "utility/container.hpp"
+#include "utility/tuple.hpp"
+#include "utility/string.hpp"
+#include "pronest/configuration_search_point.hpp"
 
-namespace Ariadne {
+namespace pExplore {
 
-class ConfigurationSearchPoint;
+using Utility::String;
+using Utility::Set;
+using Utility::Pair;
+using Utility::Map;
+using ProNest::ConfigurationSearchPoint;
+
 class TaskExecutionRanking;
-class ConfigurationSearchSpace;
 template<class R> class TaskRankingSpace;
 
 typedef std::chrono::microseconds DurationType;
@@ -61,7 +70,7 @@ class TaskInterface {
     //! \brief Return the ranking space for the task
     virtual TaskRankingSpace<R> const& ranking_space() const = 0;
     //! \brief Set the ranking space for the task
-    virtual Void set_ranking_space(TaskRankingSpace<R> const& space) = 0;
+    virtual void set_ranking_space(TaskRankingSpace<R> const& space) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
@@ -69,6 +78,6 @@ class TaskInterface {
     virtual Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> const& data, InputType const& in) const = 0;
 };
 
-} // namespace Ariadne
+} // namespace pExplore
 
-#endif // ARIADNE_TASK_INTERFACE_HPP
+#endif // PEXPLORE_TASK_INTERFACE_HPP

@@ -1,38 +1,43 @@
 /***************************************************************************
  *            test_task_ranking_parameter.cpp
  *
- *  Copyright  2008-20  Luca Geretti
+ *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "concurrency/task_ranking_parameter.hpp"
-#include "concurrency/task_runner_interface.hpp"
+#include "utility/test.hpp"
 #include "utility/array.hpp"
-#include "../test.hpp"
+#include "task_ranking_parameter.hpp"
+#include "task_runner_interface.hpp"
 
-using namespace Ariadne;
+using namespace pExplore;
+using namespace Utility;
 
 class TestRunnable : public TaskRunnable<TestRunnable> { };
 typedef TestRunnable R;
 
-namespace Ariadne {
+namespace pExplore {
 template<> struct TaskInput<R> {
     TaskInput(int i1_, Array<int> i2_) : i1(i1_), i2(i2_) { }
     int i1;
@@ -57,56 +62,56 @@ class TestTaskRankingParameter {
         _duration = std::chrono::duration_cast<DurationType>(now-now);
     }
 
-    Void test_scalar_ranking_parameter_creation() {
+    void test_scalar_ranking_parameter_creation() {
         ScalarRankingParameter<R> p("chosen_step_size", OptimisationCriterion::MAXIMISE,
                                     [](I const& input, O const& output, DurationType const& duration) { return output.o + duration.count() + input.i1; });
         auto input = I(2,{1,2});
         auto output = O(7);
         auto cost = p.rank(input, output, _duration);
-        ARIADNE_TEST_PRINT(p);
-        ARIADNE_TEST_ASSERT(p.is_scalar());
-        ARIADNE_TEST_EQUALS(cost,9);
-        ARIADNE_TEST_EQUALS(p.dimension(input),1);
-        ARIADNE_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MAXIMISE);
+        UTILITY_TEST_PRINT(p);
+        UTILITY_TEST_ASSERT(p.is_scalar());
+        UTILITY_TEST_EQUALS(cost,9);
+        UTILITY_TEST_EQUALS(p.dimension(input),1);
+        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MAXIMISE);
     }
 
-    Void test_vector_ranking_parameter_creation() {
+    void test_vector_ranking_parameter_creation() {
         VectorRankingParameter<R> p("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                    [](I const& input, O const& output, DurationType const& duration, SizeType const& idx) {
+                                    [](I const& input, O const& output, DurationType const& duration, size_t const& idx) {
                                                 return output.o + duration.count() + input.i2[idx]; },
                                     [](I const& input) { return input.i2.size(); });
         auto input = I(2,{1,2});
         auto output = O(7);
 
-        ARIADNE_TEST_PRINT(p);
-        ARIADNE_TEST_ASSERT(not p.is_scalar());
-        ARIADNE_TEST_EQUALS(p.rank(input, output, _duration, 0), 8);
-        ARIADNE_TEST_EQUALS(p.rank(input, output, _duration, 1), 9);
-        ARIADNE_TEST_EQUALS(p.dimension(input),2);
-        ARIADNE_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE);
+        UTILITY_TEST_PRINT(p);
+        UTILITY_TEST_ASSERT(not p.is_scalar());
+        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 0), 8);
+        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 1), 9);
+        UTILITY_TEST_EQUALS(p.dimension(input),2);
+        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE);
     }
 
-    Void test_task_ranking_parameter_set() {
+    void test_task_ranking_parameter_set() {
         ScalarRankingParameter<R> p1("chosen_step_size", OptimisationCriterion::MAXIMISE,
                                      [](I const& input, O const& output, DurationType const& duration) { return output.o + duration.count() + input.i1; });
         VectorRankingParameter<R> p2("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                     [](I const& input, O const& output, DurationType const& duration, SizeType const& idx) {
+                                     [](I const& input, O const& output, DurationType const& duration, size_t const& idx) {
                                           return output.o + duration.count() + input.i2[idx]; },
                                      [](I const& input) { return input.i2.size(); });
 
         List<TaskRankingParameter<R>> ps = {p1, p2};
 
-        ARIADNE_TEST_PRINT(ps);
+        UTILITY_TEST_PRINT(ps);
     }
 
-    Void test() {
-        ARIADNE_TEST_CALL(test_scalar_ranking_parameter_creation());
-        ARIADNE_TEST_CALL(test_vector_ranking_parameter_creation());
-        ARIADNE_TEST_CALL(test_task_ranking_parameter_set());
+    void test() {
+        UTILITY_TEST_CALL(test_scalar_ranking_parameter_creation());
+        UTILITY_TEST_CALL(test_vector_ranking_parameter_creation());
+        UTILITY_TEST_CALL(test_task_ranking_parameter_set());
     }
 };
 
 int main() {
     TestTaskRankingParameter().test();
-    return ARIADNE_TEST_FAILURES;
+    return UTILITY_TEST_FAILURES;
 }

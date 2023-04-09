@@ -1,35 +1,42 @@
 /***************************************************************************
- *            concurrency/task_execution_ranking.cpp
+ *            task_execution_ranking.cpp
  *
- *  Copyright  2007-20  Luca Geretti
+ *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "../concurrency/task_execution_ranking.hpp"
+#include "utility/string.hpp"
+#include "task_execution_ranking.hpp"
 
-namespace Ariadne {
+namespace pExplore {
+
+using Utility::to_string;
 
 TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p,
                                            ScoreType const& s,
-                                           SizeType const& permissive_failures,
-                                           SizeType const& critical_failures)
+                                           size_t const& permissive_failures,
+                                           size_t const& critical_failures)
            : _point(p), _score(s), _permissive_failures(permissive_failures), _critical_failures(critical_failures) { }
 
 ConfigurationSearchPoint const&
@@ -42,17 +49,17 @@ TaskExecutionRanking::score() const {
     return _score;
 }
 
-SizeType const&
+size_t const&
 TaskExecutionRanking::permissive_failures() const {
     return _permissive_failures;
 }
 
-SizeType const&
+size_t const&
 TaskExecutionRanking::critical_failures() const {
     return _critical_failures;
 }
 
-Bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
+bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
     if (this->_critical_failures > s._critical_failures) return true;
     else if (this->_critical_failures < s._critical_failures) return false;
     else if (this->_permissive_failures > s._permissive_failures) return true;
@@ -60,8 +67,8 @@ Bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
     else return this->_score < s._score;
 }
 
-OutputStream& TaskExecutionRanking::_write(OutputStream& os) const {
+ostream& TaskExecutionRanking::_write(ostream& os) const {
     return os << "{" << _point << ":" << _score << (_permissive_failures > 0 ? (",P:" + to_string(_permissive_failures)) : "")
               << (_critical_failures > 0 ? (",C:" + to_string(_critical_failures)) : "") << "}";
 }
-} // namespace Ariadne
+} // namespace pExplore

@@ -1,43 +1,51 @@
 /***************************************************************************
- *            concurrency/task_runner.hpp
+ *            task_runner.hpp
  *
- *  Copyright  2007-20  Luca Geretti
+ *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file concurrency/task_runner.hpp
+/*! \file task_runner.hpp
  *  \brief Runner classes.
  */
 
-#ifndef ARIADNE_TASK_RUNNER_HPP
-#define ARIADNE_TASK_RUNNER_HPP
+#ifndef PEXPLORE_TASK_RUNNER_HPP
+#define PEXPLORE_TASK_RUNNER_HPP
 
-#include "loggable_smart_thread.hpp"
-#include "buffer.hpp"
+#include "betterthreads/thread.hpp"
+#include "betterthreads/buffer.hpp"
+#include "pronest/configuration_search_point.hpp"
+#include "pronest/configuration_search_space.hpp"
+#include "pronest/configuration_property.tpl.hpp"
 #include "task_runner_interface.hpp"
-#include "configuration/configuration_search_point.hpp"
-#include "configuration/configuration_search_space.hpp"
 #include "task_execution_ranking.hpp"
-#include "configuration/configuration_property.tpl.hpp"
 
-namespace Ariadne {
+namespace pExplore {
+
+using BetterThreads::Buffer;
+using BetterThreads::Thread;
+using std::shared_ptr;
 
 template<class C> class TaskRunnerBase;
 
@@ -45,24 +53,24 @@ template<class C> class TaskRunnerBase;
 //! \details Used to provide a sequential alternative to any thread-based implementation.
 template<class C>
 class SequentialRunner final : public TaskRunnerBase<C> {
-    friend class ConcurrencyManager;
+    friend class TaskManager;
     typedef typename TaskRunnerBase<C>::InputType InputType;
     typedef typename TaskRunnerBase<C>::OutputType OutputType;
     typedef typename TaskRunnerBase<C>::ConfigurationType ConfigurationType;
   protected:
     SequentialRunner(ConfigurationType const& configuration);
   public:
-    Void push(InputType const& input) override final;
+    void push(InputType const& input) override final;
     OutputType pull() override final;
 
 private:
-    SharedPointer<OutputType> _last_output;
+    shared_ptr<OutputType> _last_output;
 };
 
 //! \brief Run a task in a detached thread, allowing other processing between pushing and pulling.
 template<class C>
 class DetachedRunner final : public TaskRunnerBase<C> {
-    friend class ConcurrencyManager;
+    friend class TaskManager;
     typedef typename TaskRunnerBase<C>::InputType InputType;
     typedef typename TaskRunnerBase<C>::OutputType OutputType;
     typedef typename TaskRunnerBase<C>::ConfigurationType ConfigurationType;
@@ -73,13 +81,13 @@ class DetachedRunner final : public TaskRunnerBase<C> {
   public:
     virtual ~DetachedRunner();
 
-    Void push(InputType const& input) override final;
+    void push(InputType const& input) override final;
     OutputType pull() override final;
 
 private:
-    Void _loop();
+    void _loop();
 private:
-    LoggableSmartThread _thread;
+    Thread _thread;
     InputBufferType _input_buffer;
     OutputBufferType _output_buffer;
     Buffer<InputType> _last_used_input;
@@ -97,7 +105,7 @@ template<class O> class ParameterSearchOutputBufferData;
 
 //! \brief Run a task by detached concurrent search into the parameter space.
 template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
-    friend class ConcurrencyManager;
+    friend class TaskManager;
     typedef typename TaskRunnerBase<C>::InputType InputType;
     typedef typename TaskRunnerBase<C>::OutputType OutputType;
     typedef typename TaskRunnerBase<C>::ConfigurationType ConfigurationType;
@@ -106,22 +114,22 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
     typedef Buffer<InputBufferContentType> InputBufferType;
     typedef Buffer<OutputBufferContentType> OutputBufferType;
   protected:
-    ParameterSearchRunner(ConfigurationType const& configuration, Nat concurrency);
+    ParameterSearchRunner(ConfigurationType const& configuration, unsigned int concurrency);
   public:
     virtual ~ParameterSearchRunner();
 
-    Void push(InputType const& input) override final;
+    void push(InputType const& input) override final;
     OutputType pull() override final;
 
 private:
-    Void _loop();
+    void _loop();
 private:
-    Nat const _concurrency; // Number of threads to be used
-    std::atomic<Nat> _failures; // Number of failures after a given push, reset during pulling
+    unsigned int const _concurrency; // Number of threads to be used
+    std::atomic<unsigned int> _failures; // Number of failures after a given push, reset during pulling
     Buffer<InputType> _last_used_input;
     std::queue<ConfigurationSearchPoint> _points;
     // Synchronization
-    List<SharedPointer<LoggableSmartThread>> _threads;
+    List<shared_ptr<Thread>> _threads;
     InputBufferType _input_buffer;
     OutputBufferType _output_buffer;
     std::atomic<bool> _active;
@@ -132,6 +140,6 @@ private:
     std::condition_variable _output_availability;
 };
 
-} // namespace Ariadne
+} // namespace pExplore
 
-#endif // ARIADNE_TASK_RUNNER_HPP
+#endif // PEXPLORE_TASK_RUNNER_HPP

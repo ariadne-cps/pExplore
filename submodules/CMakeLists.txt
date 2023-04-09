@@ -1,2 +1,3 @@
 add_subdirectory(conclog)
 add_subdirectory(pronest)
+add_subdirectory(betterthreads)

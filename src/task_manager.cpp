@@ -1,82 +1,89 @@
 /***************************************************************************
- *            concurrency/concurrency_manager.cpp
+ *            task_manager.cpp
  *
- *  Copyright  2007-20  Luca Geretti
+ *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ * This file is part of pExplore, under the MIT license.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- *  Ariadne is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "../utility/macros.hpp"
-#include "../concurrency/concurrency_manager.hpp"
+#include "conclog/logging.hpp"
+#include "utility/macros.hpp"
+#include "task_manager.hpp"
 
-namespace Ariadne {
+namespace pExplore {
 
-ConcurrencyManager::ConcurrencyManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1) {}
+using std::make_pair;
 
-SizeType ConcurrencyManager::maximum_concurrency() const {
+TaskManager::TaskManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1) {}
+
+size_t TaskManager::maximum_concurrency() const {
     return _maximum_concurrency;
 }
 
-SizeType ConcurrencyManager::concurrency() const {
+size_t TaskManager::concurrency() const {
     return _concurrency;
 }
 
-void ConcurrencyManager::set_concurrency(SizeType value) {
-    ARIADNE_PRECONDITION(value <= _maximum_concurrency and value > 0);
+void TaskManager::set_concurrency(size_t value) {
+    UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0);
     std::lock_guard<std::mutex> lock(_data_mutex);
     _concurrency = value;
 }
 
-List<TaskExecutionRanking> ConcurrencyManager::best_rankings() const {
+List<TaskExecutionRanking> TaskManager::best_rankings() const {
     return _best_rankings;
 }
 
-void ConcurrencyManager::append_best_ranking(TaskExecutionRanking const& ranking) {
+void TaskManager::append_best_ranking(TaskExecutionRanking const& ranking) {
     std::lock_guard<std::mutex> lock(_data_mutex);
     _best_rankings.push_back(ranking);
 }
 
-void ConcurrencyManager::clear_best_rankings() {
+void TaskManager::clear_best_rankings() {
     _best_rankings.clear();
 }
 
-List<int> ConcurrencyManager::optimal_point() const {
+List<int> TaskManager::optimal_point() const {
     List<int> result;
     if (not _best_rankings.empty()) {
         auto space = _best_rankings.front().point().space();
         auto dimension = space.dimension();
 
-        List<Map<int,SizeType>> frequencies;
-        for (SizeType i=0; i<dimension; ++i) frequencies.push_back(Map<int,SizeType>());
+        List<Map<int,size_t>> frequencies;
+        for (size_t i=0; i<dimension; ++i) frequencies.push_back(Map<int,size_t>());
         for (auto ranking : _best_rankings) {
             auto coordinates = ranking.point().coordinates();
-            for (SizeType i=0; i<dimension; ++i) {
+            for (size_t i=0; i<dimension; ++i) {
                 auto iter = frequencies[i].find(coordinates[i]);
                 if (iter == frequencies[i].end()) frequencies[i].insert(make_pair(coordinates[i],1));
                 else frequencies[i].at(coordinates[i])++;
             }
         }
 
-        for (SizeType i=0; i<dimension; ++i) {
+        for (size_t i=0; i<dimension; ++i) {
             auto freq_it = frequencies[i].begin();
             int best_value = freq_it->first;
-            SizeType best_frequency = freq_it->second;
+            size_t best_frequency = freq_it->second;
             ++freq_it;
             while(freq_it != frequencies[i].end()) {
                 if (freq_it->second >best_frequency) {
@@ -91,7 +98,7 @@ List<int> ConcurrencyManager::optimal_point() const {
     return result;
 }
 
-void ConcurrencyManager::print_best_rankings() const {
+void TaskManager::print_best_rankings() const {
     if (not _best_rankings.empty()) {
         std::ofstream file;
         file.open("points.m");
@@ -99,17 +106,17 @@ void ConcurrencyManager::print_best_rankings() const {
         auto dimension = space.dimension();
         auto size = _best_rankings.size();
         file << "x = [1:" << size << "];\n";
-        Map<SizeType,List<int>> values;
+        Map<size_t,List<int>> values;
         List<int> soft_failures;
-        for (SizeType i=0; i<dimension; ++i) values.insert(make_pair(i,List<int>()));
+        for (size_t i=0; i<dimension; ++i) values.insert(make_pair(i,List<int>()));
         for (auto ranking : _best_rankings) {
             auto point = ranking.point();
-            for (SizeType i=0; i<dimension; ++i) values.at(i).push_back(point.coordinates()[i]);
+            for (size_t i=0; i<dimension; ++i) values.at(i).push_back(point.coordinates()[i]);
             soft_failures.push_back(ranking.permissive_failures());
         }
         file << "figure(1);\n";
         file << "hold on;\n";
-        for (SizeType i=0; i<dimension; ++i) {
+        for (size_t i=0; i<dimension; ++i) {
             file << "y" << i << " = " << values.at(i) << ";\n";
             auto name = space.parameters()[i].path().last();
             std::replace(name.begin(), name.end(), '_', ' ');
