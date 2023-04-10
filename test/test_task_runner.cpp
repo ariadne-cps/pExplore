@@ -186,7 +186,6 @@ class TestTaskRunner {
 
         A a(ca);
 
-        List<Pair<TaskRankingParameter<A>,double>> specification;
         using I = TaskInput<A>;
         using O = TaskOutput<A>;
         using OBJ = TaskObjective<A>;
@@ -196,8 +195,7 @@ class TestTaskRunner {
                                                                  [](I const&, O const&, OBJ const&) { return 0.0; },
                                                                  [](I const&, OBJ const&) { return false; }
         );
-        specification.push_back({constraint,1.0});
-        TaskManager::instance().set_ranking_space_for(a,specification);
+        TaskManager::instance().set_ranking_space_for(a, {constraint});
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)

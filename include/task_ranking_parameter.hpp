@@ -1,5 +1,5 @@
 /***************************************************************************
- *            task_raking_parameter.hpp
+ *            task_ranking_parameter.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -26,7 +26,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file concurrency/task_ranking_parameter.hpp
+/*! \file task_ranking_parameter.hpp
  *  \brief Classes for handling parameters for ranking the results of a task.
  */
 

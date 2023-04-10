@@ -57,7 +57,7 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     typedef TaskOutput<R> OutputType;
   protected:
     ParameterSearchTaskBase(String const& name)
-        : _name(name), _ranking_space(shared_ptr<TaskRankingSpace<R>>(TaskRankingSpaceBuilder<R>().build().clone())) {}
+        : _name(name), _ranking_space(shared_ptr<TaskRankingSpace<R>>(new TaskRankingSpace<R>({}))) {}
   public:
     String name() const override { return _name; }
     TaskRankingSpace<R> const& ranking_space() const override { return *_ranking_space; }
