@@ -108,7 +108,7 @@ template<class C> void DetachedRunner<C>::_loop() {
 
 template<class C> DetachedRunner<C>::DetachedRunner(ConfigurationType const& configuration)
         : TaskRunnerBase<C>(configuration),
-          _thread([this]() { _loop(); }, this->_task->name()),
+          _thread([this]() { _loop(); }, this->_task->name(), false),
           _input_buffer(InputBufferType(1)),_output_buffer(OutputBufferType(1)),
           _last_used_input(1), _active(false), _terminate(false) { }
 
@@ -131,7 +131,7 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     std::unique_lock<std::mutex> locker(_output_mutex);
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
-    auto failed_constraints = this->_task->ranking_space().failed_critical_constraints(_last_used_input.pop(),result);
+    auto failed_constraints = this->_task->ranking_space().failed_critical_constraints(_last_used_input.pull(),result);
     if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
     return result;
 }
@@ -185,7 +185,7 @@ template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationT
           _input_buffer(InputBufferType(concurrency)),_output_buffer(OutputBufferType(concurrency)),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
-        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task->name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i))));
+        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task->name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
 }
 
 template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {

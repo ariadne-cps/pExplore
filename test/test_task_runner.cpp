@@ -31,6 +31,7 @@
 #include "pronest/configuration_property.tpl.hpp"
 #include "pronest/configuration_search_space.hpp"
 #include "pronest/configurable.tpl.hpp"
+#include "betterthreads/thread_manager.hpp"
 #include "task_runner_interface.hpp"
 #include "task.tpl.hpp"
 #include "task_runner.tpl.hpp"
@@ -135,11 +136,11 @@ template<> struct TaskObjective<A> {
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
     Task() : ParameterSearchTaskBase<A>("test") { }
     TaskOutput<A> run(TaskInput<A> const& in, Configuration<A> const& cfg) const override {
-        double level_value = -1.0;
+        double level_value = -2.0;
         switch (cfg.level()) {
             case LevelOptions::HIGH : level_value++;
             case LevelOptions::MEDIUM : level_value++;
-            default : {}
+            default : level_value++;
         }
         return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0)};
     }
@@ -150,13 +151,13 @@ public:
     A(Configuration<A> const& config) : TaskRunnable<A>(config) { }
     ostream& _write(ostream& os) const override { os << "configuration:" << configuration(); return os; }
 
-    void execute() {
-        List<double> results;
+    List<double> execute() {
+        List<double> result;
         for (size_t i=0; i<10; ++i) {
             runner()->push(TaskInput<A>(1.0));
-            results.push_back(runner()->pull().y);
+            result.push_back(runner()->pull().y);
         }
-        UTILITY_TEST_PRINT(results)
+        return result;
     }
 };
 
@@ -164,6 +165,9 @@ class TestTaskRunner {
   public:
 
     void test_run() {
+
+        BetterThreads::ThreadManager::instance();
+
         Configuration<A> ca;
         Configuration<TestConfigurable> ctc;
         ctc.set_both_use_something();
@@ -178,14 +182,25 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(search_space);
 
         UTILITY_TEST_PRINT(TaskManager::instance().maximum_concurrency())
-        TaskManager::instance().set_concurrency(1);
+        TaskManager::instance().set_concurrency(8);
 
         A a(ca);
 
         List<Pair<TaskRankingParameter<A>,double>> specification;
+        using I = TaskInput<A>;
+        using O = TaskOutput<A>;
+        using OBJ = TaskObjective<A>;
+        OBJ empty_obj(1.0);
+        auto constraint = ScalarObjectiveRankingParameter<A>("c", OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE, empty_obj,
+                                                                 [](I const&, O const& o, DurationType const&, OBJ const&) { return o.y; },
+                                                                 [](I const&, O const&, DurationType const&, OBJ const&) { return 0.0; },
+                                                                 [](I const&, OBJ const&) { return false; }
+        );
+        specification.push_back({constraint,1.0});
         TaskManager::instance().set_ranking_space_for(a,specification);
 
-        a.execute();
+        auto result = a.execute();
+        UTILITY_TEST_PRINT(result)
     }
 
     void test() {
