@@ -31,11 +31,14 @@
 #include "pronest/configuration_property.tpl.hpp"
 #include "pronest/configuration_search_space.hpp"
 #include "pronest/configurable.tpl.hpp"
-#include "pronest/configuration_search_point.hpp"
+#include "task_runner_interface.hpp"
+#include "task.tpl.hpp"
+#include "task_runner.tpl.hpp"
 
 using namespace std;
 using namespace ProNest;
 using namespace Utility;
+using namespace pExplore;
 
 class A;
 
@@ -114,16 +117,53 @@ template<> struct Configuration<A> : public SearchableConfiguration {
     void set_test_configurable(shared_ptr<TestConfigurableInterface> const& test_configurable) { at<TestConfigurableConfigurationProperty>("test_configurable").set(test_configurable); }
 };
 
-class A : public Configurable<A>, public WritableInterface {
-  public:
-    A() : Configurable<A>(Configuration<A>()) { }
+template<> struct TaskInput<A> {
+    TaskInput(double const& x_) : x(x_) { }
+    double const& x;
+};
+
+template<> struct TaskOutput<A> {
+    TaskOutput(double const& y_) : y(y_) { }
+    double const y;
+};
+
+template<> struct TaskObjective<A> {
+    TaskObjective(double const& obj_) : obj(obj_) { }
+    double const obj;
+};
+
+template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
+    Task() : ParameterSearchTaskBase<A>("test") { }
+    TaskOutput<A> run(TaskInput<A> const& in, Configuration<A> const& cfg) const override {
+        double level_value = -1.0;
+        switch (cfg.level()) {
+            case LevelOptions::HIGH : level_value++;
+            case LevelOptions::MEDIUM : level_value++;
+            default : {}
+        }
+        return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0)};
+    }
+};
+
+class A : public TaskRunnable<A>, public WritableInterface {
+public:
+    A(Configuration<A> const& config) : TaskRunnable<A>(config) { }
     ostream& _write(ostream& os) const override { os << "configuration:" << configuration(); return os; }
+
+    void execute() {
+        List<double> results;
+        for (size_t i=0; i<10; ++i) {
+            runner()->push(TaskInput<A>(1.0));
+            results.push_back(runner()->pull().y);
+        }
+        UTILITY_TEST_PRINT(results)
+    }
 };
 
 class TestTaskRunner {
   public:
 
-    void test_configuration_hierarchic_search_space() {
+    void test_run() {
         Configuration<A> ca;
         Configuration<TestConfigurable> ctc;
         ctc.set_both_use_something();
@@ -136,10 +176,20 @@ class TestTaskRunner {
         auto search_space = ca.search_space();
         UTILITY_TEST_PRINT(ca);
         UTILITY_TEST_PRINT(search_space);
+
+        UTILITY_TEST_PRINT(TaskManager::instance().maximum_concurrency())
+        TaskManager::instance().set_concurrency(1);
+
+        A a(ca);
+
+        List<Pair<TaskRankingParameter<A>,double>> specification;
+        TaskManager::instance().set_ranking_space_for(a,specification);
+
+        a.execute();
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_configuration_hierarchic_search_space());
+        UTILITY_TEST_CALL(test_run());
     }
 };
 

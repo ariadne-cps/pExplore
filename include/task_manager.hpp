@@ -40,6 +40,7 @@
 #include "utility/container.hpp"
 #include "task_runner.hpp"
 #include "task_execution_ranking.hpp"
+#include "task_ranking_space.hpp"
 
 namespace pExplore {
 
@@ -73,6 +74,13 @@ class TaskManager {
         } else
             runner.reset(new SequentialRunner<T>(cfg));
         runnable.set_runner(runner);
+    }
+
+    template<class R> void set_ranking_space_for(TaskRunnable<R>& runnable, List<Pair<TaskRankingParameter<R>,double>> const& specification) const
+    {
+        TaskRankingSpaceBuilder<R> builder;
+        for (auto s : specification) builder.add(s.first,s.second);
+        runnable.runner()->task().set_ranking_space(builder.build());
     }
 
     size_t maximum_concurrency() const;

@@ -99,7 +99,7 @@ template<class C> void DetachedRunner<C>::_loop() {
         std::unique_lock<std::mutex> locker(_input_mutex);
         _input_availability.wait(locker, [this]() { return _input_buffer.size()>0 || _terminate; });
         if (_terminate) break;
-        auto input = _input_buffer.pop();
+        auto input = _input_buffer.pull();
         OutputType output = this->_task->run(input,this->configuration());
         _output_buffer.push(output);
         _output_availability.notify_all();
@@ -108,7 +108,7 @@ template<class C> void DetachedRunner<C>::_loop() {
 
 template<class C> DetachedRunner<C>::DetachedRunner(ConfigurationType const& configuration)
         : TaskRunnerBase<C>(configuration),
-          _thread(this->_task->name(), [this]() { _loop(); }),
+          _thread([this]() { _loop(); }, this->_task->name()),
           _input_buffer(InputBufferType(1)),_output_buffer(OutputBufferType(1)),
           _last_used_input(1), _active(false), _terminate(false) { }
 
@@ -130,7 +130,7 @@ template<class C> void DetachedRunner<C>::push(InputType const& input) {
 template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     std::unique_lock<std::mutex> locker(_output_mutex);
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
-    auto result = _output_buffer.pop();
+    auto result = _output_buffer.pull();
     auto failed_constraints = this->_task->ranking_space().failed_critical_constraints(_last_used_input.pop(),result);
     if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
     return result;
@@ -162,7 +162,7 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         locker.unlock();
         if (_terminate) break;
         if (_input_buffer.size() == 0) std::cout << "Input buffer is empty." << std::endl;
-        auto pkg = _input_buffer.pop();
+        auto pkg = _input_buffer.pull();
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
             auto start = std::chrono::high_resolution_clock::now();
@@ -185,7 +185,7 @@ template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationT
           _input_buffer(InputBufferType(concurrency)),_output_buffer(OutputBufferType(concurrency)),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
-        _threads.append(shared_ptr<Thread>(new Thread(this->_task->name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), [this]() { _loop(); })));
+        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task->name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i))));
 }
 
 template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {
@@ -214,10 +214,10 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     CONCLOG_PRINTLN("received " << _concurrency-_failures << " completed tasks");
     _failures=0;
 
-    InputType input = _last_used_input.pop();
+    InputType input = _last_used_input.pull();
     Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> outputs;
     while (_output_buffer.size() > 0) {
-        auto io_data = _output_buffer.pop();
+        auto io_data = _output_buffer.pull();
         outputs.insert(Pair<ConfigurationSearchPoint,Pair<OutputType,DurationType>>(
                 io_data.point(),{io_data.output(),io_data.execution_time()}));
     }

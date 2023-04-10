@@ -46,6 +46,7 @@ using Utility::Set;
 using Utility::Pair;
 using Utility::Map;
 using ProNest::ConfigurationSearchPoint;
+using ProNest::Configuration;
 
 class TaskExecutionRanking;
 template<class R> class TaskRankingSpace;
@@ -56,7 +57,6 @@ template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
 template<class R> struct TaskObjective;
 template<class R> struct Task;
-template<class R> struct Configuration;
 
 template<class R>
 class TaskInterface {

@@ -68,7 +68,6 @@ class TaskRunnerInterface {
 template<class C>
 class TaskRunnable : public Configurable<C> {
     friend class TaskManager;
-    friend class VerificationManager;
     typedef Configuration<C> ConfigurationType;
   protected:
     TaskRunnable(ConfigurationType const& configuration);

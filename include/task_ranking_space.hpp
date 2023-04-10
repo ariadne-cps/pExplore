@@ -33,12 +33,14 @@
 #ifndef PEXPLORE_TASK_RANKING_SPACE_HPP
 #define PEXPLORE_TASK_RANKING_SPACE_HPP
 
+#include "utility/array.hpp"
 #include "task_ranking_parameter.hpp"
 #include "task_execution_ranking.hpp"
 
 namespace pExplore {
 
 using std::min, std::max;
+using Utility::Array;
 
 template<class R> class TaskRankingSpace;
 typedef ScoreType WeightType;
@@ -109,7 +111,7 @@ class TaskRankingSpace : public WritableInterface {
         // Compute the dimensions and initialise the min/max entries
         List<size_t> dimensions;
         List<Pair<ScoreType,ScoreType>> scalar_min_max;
-        List<Vector<Pair<ScoreType,ScoreType>>> vector_min_max;
+        List<Array<Pair<ScoreType,ScoreType>>> vector_min_max;
         auto data_iter = data.cbegin();
         for (auto pw : kept_parameter_weights) {
             auto p = pw.first;
@@ -119,7 +121,7 @@ class TaskRankingSpace : public WritableInterface {
                 auto val = p.rank(input, data_iter->second.first, data_iter->second.second);
                 scalar_min_max.push_back(Pair<ScoreType,ScoreType>{val, val});
             } else {
-                Vector<Pair<ScoreType,ScoreType>> vals(dim);
+                Array<Pair<ScoreType,ScoreType>> vals(dim);
                 for (size_t i=0; i<dim; ++i) {
                     auto val = p.rank(input, data_iter->second.first, data_iter->second.second, i);
                     vals[i] = {val,val};
