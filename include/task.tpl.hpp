@@ -63,7 +63,7 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     TaskRankingSpace<R> const& ranking_space() const override { return *_ranking_space; }
     void set_ranking_space(TaskRankingSpace<R> const& space) override { _ranking_space.reset(space.clone()); }
 
-    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> const& data, InputType const& input) const override { return _ranking_space->rank(data, input); }
+    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override { return _ranking_space->rank(data, input); }
 
   private:
     String const _name;

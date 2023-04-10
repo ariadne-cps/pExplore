@@ -51,8 +51,6 @@ using ProNest::Configuration;
 class TaskExecutionRanking;
 template<class R> class TaskRankingSpace;
 
-typedef std::chrono::microseconds DurationType;
-
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
 template<class R> struct TaskObjective;
@@ -75,7 +73,7 @@ class TaskInterface {
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
     //! \brief Evaluate the costs of points from output and execution time, possibly using the input \a in
-    virtual Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> const& data, InputType const& in) const = 0;
+    virtual Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 
 } // namespace pExplore

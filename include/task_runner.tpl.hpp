@@ -138,20 +138,17 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
 
 template<class O> class ParameterSearchOutputBufferData {
   public:
-    ParameterSearchOutputBufferData(O const& output, DurationType const& execution_time, ConfigurationSearchPoint const& point) : _output(output), _execution_time(execution_time), _point(point) { }
-    ParameterSearchOutputBufferData(ParameterSearchOutputBufferData<O> const& p) : _output(p._output), _execution_time(p._execution_time), _point(p._point) { }
+    ParameterSearchOutputBufferData(O const& output, ConfigurationSearchPoint const& point) : _output(output), _point(point) { }
+    ParameterSearchOutputBufferData(ParameterSearchOutputBufferData<O> const& p) : _output(p._output), _point(p._point) { }
     ParameterSearchOutputBufferData& operator=(ParameterSearchOutputBufferData<O> const& p) {
         _output = p._output;
-        _execution_time = p._execution_time;
         _point = p._point;
         return *this;
     };
     O const& output() const { return _output; }
-    DurationType const& execution_time() const { return _execution_time; }
     ConfigurationSearchPoint const& point() const { return _point; }
   private:
     O _output;
-    DurationType _execution_time;
     ConfigurationSearchPoint _point;
 };
 
@@ -165,12 +162,8 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         auto pkg = _input_buffer.pull();
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
-            auto start = std::chrono::high_resolution_clock::now();
             auto output = this->_task->run(pkg.first,cfg);
-            auto end = std::chrono::high_resolution_clock::now();
-            auto execution_time = std::chrono::duration_cast<DurationType>(end-start);
-            CONCLOG_PRINTLN("task for " << pkg.second << " completed in " << execution_time.count() << " us");
-            _output_buffer.push(OutputBufferContentType(output,execution_time,pkg.second));
+            _output_buffer.push(OutputBufferContentType(output,pkg.second));
         } catch (std::exception& e) {
             ++_failures;
             CONCLOG_PRINTLN("task failed: " << e.what());
@@ -215,11 +208,10 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     _failures=0;
 
     InputType input = _last_used_input.pull();
-    Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> outputs;
+    Map<ConfigurationSearchPoint,OutputType> outputs;
     while (_output_buffer.size() > 0) {
         auto io_data = _output_buffer.pull();
-        outputs.insert(Pair<ConfigurationSearchPoint,Pair<OutputType,DurationType>>(
-                io_data.point(),{io_data.output(),io_data.execution_time()}));
+        outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(io_data.point(),io_data.output()));
     }
     auto rankings = this->_task->rank(outputs,input);
     CONCLOG_PRINTLN_VAR(rankings);
@@ -237,12 +229,11 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
 
     auto best = rankings.rbegin()->point();
     if (rankings.rbegin()->critical_failures() > 0) {
-        throw CriticalRankingFailureException<C>(this->_task->ranking_space().failed_critical_constraints(input, outputs.get(best).first));
+        throw CriticalRankingFailureException<C>(this->_task->ranking_space().failed_critical_constraints(input, outputs.get(best)));
     }
     TaskManager::instance().append_best_ranking(*rankings.rbegin());
-    auto best_output = outputs.get(best).first;
 
-    return best_output;
+    return outputs.get(best);
 }
 
 } // namespace pExplore

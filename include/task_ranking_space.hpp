@@ -91,8 +91,8 @@ class TaskRankingSpace : public WritableInterface {
         for (auto pw : _parameter_weights) {
             if (pw.first.severity() == RankingConstraintSeverity::CRITICAL) {
                 auto const& p = pw.first;
-                auto rank = p.rank(input,output,DurationType(0));
-                auto threshold = p.threshold(input,output,DurationType(0));
+                auto rank = p.rank(input,output);
+                auto threshold = p.threshold(input,output);
                 if ((p.optimisation() == OptimisationCriterion::MINIMISE and rank > threshold) or
                     (p.optimisation() == OptimisationCriterion::MAXIMISE and rank < threshold)) {
                     result.push_back(p);
@@ -102,7 +102,7 @@ class TaskRankingSpace : public WritableInterface {
         return result;
     }
 
-    List<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,Pair<OutputType,DurationType>> const& data, InputType const& input) const {
+    List<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const {
         List<TaskExecutionRanking> result;
 
         ParameterWeightsList<R> kept_parameter_weights;
@@ -118,12 +118,12 @@ class TaskRankingSpace : public WritableInterface {
             auto dim = p.dimension(input);
             dimensions.push_back(dim);
             if (dim == 1) {
-                auto val = p.rank(input, data_iter->second.first, data_iter->second.second);
+                auto val = p.rank(input, data_iter->second);
                 scalar_min_max.push_back(Pair<ScoreType,ScoreType>{val, val});
             } else {
                 Array<Pair<ScoreType,ScoreType>> vals(dim);
                 for (size_t i=0; i<dim; ++i) {
-                    auto val = p.rank(input, data_iter->second.first, data_iter->second.second, i);
+                    auto val = p.rank(input, data_iter->second, i);
                     vals[i] = {val,val};
                 }
                 vector_min_max.push_back(vals);
@@ -137,11 +137,11 @@ class TaskRankingSpace : public WritableInterface {
                 auto p = kept_parameter_weights[pw_idx].first;
                 auto dim = dimensions[pw_idx];
                 if (dim == 1) {
-                    auto val = p.rank(input, data_iter->second.first, data_iter->second.second);
+                    auto val = p.rank(input, data_iter->second);
                     scalar_min_max[pw_idx] = {min(scalar_min_max[pw_idx].first,val), max(scalar_min_max[pw_idx].second,val)};
                 } else {
                     for (size_t i=0; i<dim; ++i) {
-                        auto val = p.rank(input, data_iter->second.first, data_iter->second.second, i);
+                        auto val = p.rank(input, data_iter->second, i);
                         vector_min_max[pw_idx][i] = {min(vector_min_max[pw_idx][i].first,val),max(vector_min_max[pw_idx][i].second,val)};
                     }
                 }
@@ -162,9 +162,9 @@ class TaskRankingSpace : public WritableInterface {
                 ScoreType local_score(0);
                 if (dim == 1) {
                     auto max_min_diff = scalar_min_max[pw_idx].second - scalar_min_max[pw_idx].first;
-                    auto rank = p.rank(input, entry.second.first, entry.second.second);
+                    auto rank = p.rank(input, entry.second);
                     if (p.uses_objective()) {
-                        auto threshold = p.threshold(input, entry.second.first, entry.second.second);
+                        auto threshold = p.threshold(input, entry.second);
                         if ((p.optimisation() == OptimisationCriterion::MINIMISE and rank > threshold) or
                             (p.optimisation() == OptimisationCriterion::MAXIMISE and rank < threshold)) {
                             if (p.severity() == RankingConstraintSeverity::PERMISSIVE) ++low_errors;
@@ -176,7 +176,7 @@ class TaskRankingSpace : public WritableInterface {
                     size_t effective_dim = dim;
                     for (size_t i=0; i<dim; ++i) {
                         auto max_min_diff = vector_min_max[pw_idx][i].second - vector_min_max[pw_idx][i].first;
-                        auto rank = p.rank(input, entry.second.first, entry.second.second, i);
+                        auto rank = p.rank(input, entry.second, i);
                         if (max_min_diff > 0) local_score = (rank - vector_min_max[pw_idx][i].first)/max_min_diff;
                         else --effective_dim;
                         if (effective_dim > 0) local_score/=effective_dim;

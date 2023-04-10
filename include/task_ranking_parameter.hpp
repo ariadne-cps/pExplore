@@ -78,7 +78,6 @@ inline std::ostream& operator<<(std::ostream& os, const RankingConstraintSeverit
 }
 
 typedef double ScoreType;
-typedef std::chrono::microseconds DurationType;
 
 template<class R> class TaskRankingParameterInterface : public WritableInterface {
 public:
@@ -91,8 +90,8 @@ public:
     virtual bool is_scalar() const = 0;
     virtual bool uses_objective() const = 0;
     virtual bool discard(InputType const& input) const = 0;
-    virtual ScoreType rank(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const = 0;
-    virtual ScoreType threshold(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const = 0;
+    virtual ScoreType rank(InputType const& input, OutputType const& output, size_t const& idx = 0) const = 0;
+    virtual ScoreType threshold(InputType const& input, OutputType const& output, size_t const& idx = 0) const = 0;
     virtual size_t dimension(InputType const& input) const = 0;
 
     virtual TaskRankingParameterInterface* clone() const = 0;
@@ -125,19 +124,19 @@ template<class R> class ScalarRankingParameter : public TaskRankingParameterBase
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
-    ScalarRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&, DurationType const&)> const rfunc)
+    ScalarRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&)> const rfunc)
         : TaskRankingParameterBase<R>(name, opt, RankingConstraintSeverity::NONE), _rfunc(rfunc) { }
 
     bool is_scalar() const override { return true; }
     bool uses_objective() const override { return false; }
     bool discard(InputType const& input) const override { return false; }
     size_t dimension(InputType const& input) const override { return 1; }
-    ScoreType rank(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const override { return _rfunc(input, output, duration); }
-    ScoreType threshold(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const override { UTILITY_ERROR("Cannot compute threshold for non-objective scalar parameter"); return 0; }
+    ScoreType rank(InputType const& input, OutputType const& output, size_t const& idx = 0) const override { return _rfunc(input, output); }
+    ScoreType threshold(InputType const& input, OutputType const& output, size_t const& idx = 0) const override { UTILITY_ERROR("Cannot compute threshold for non-objective scalar parameter"); return 0; }
 
     ScalarRankingParameter* clone() const override { return new ScalarRankingParameter(*this); }
   private:
-    std::function<ScoreType(InputType const&, OutputType const&, DurationType const&)> const _rfunc;
+    std::function<ScoreType(InputType const&, OutputType const&)> const _rfunc;
 };
 
 template<class R> class ScalarObjectiveRankingParameter : public TaskRankingParameterBase<R> {
@@ -145,7 +144,7 @@ public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
     typedef TaskObjective<R> ObjectiveType;
-    typedef std::function<ScoreType(InputType const&, OutputType const&, DurationType const&, ObjectiveType const&)> MeasureFunctionType;
+    typedef std::function<ScoreType(InputType const&, OutputType const&, ObjectiveType const&)> MeasureFunctionType;
     typedef std::function<bool(InputType const&, ObjectiveType const&)> DiscardFunctionType;
     ScalarObjectiveRankingParameter(String const& name, OptimisationCriterion const& opt, RankingConstraintSeverity const& severity, ObjectiveType const& objective,
                                     MeasureFunctionType const& score, MeasureFunctionType const& threshold, DiscardFunctionType const& discard)
@@ -155,11 +154,11 @@ public:
     bool uses_objective() const override { return true; }
     size_t dimension(InputType const& input) const override { return 1; }
     bool discard(InputType const& input) const override { return _dfunc(input,_objective); }
-    ScoreType rank(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const override {
-        auto score = _sfunc(input, output, duration, _objective);
+    ScoreType rank(InputType const& input, OutputType const& output, size_t const& idx = 0) const override {
+        auto score = _sfunc(input, output, _objective);
         return score;
     }
-    ScoreType threshold(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const override { return _tfunc(input,output,duration,_objective); }
+    ScoreType threshold(InputType const& input, OutputType const& output, size_t const& idx = 0) const override { return _tfunc(input,output,_objective); }
 
     ScalarObjectiveRankingParameter* clone() const override { return new ScalarObjectiveRankingParameter(*this); }
 private:
@@ -173,7 +172,7 @@ template<class R> class VectorRankingParameter : public TaskRankingParameterBase
 public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
-    VectorRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&, DurationType const&, size_t const&)> const rfunc, std::function<size_t(InputType const&)> const dfunc)
+    VectorRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&, size_t const&)> const rfunc, std::function<size_t(InputType const&)> const dfunc)
             : TaskRankingParameterBase<R>(name, opt, RankingConstraintSeverity::NONE), _rfunc(rfunc), _dfunc(dfunc) { }
 
     bool is_scalar() const override { return false; };
@@ -181,12 +180,12 @@ public:
 
     size_t dimension(InputType const& input) const override { return _dfunc(input); }
     bool discard(InputType const& input) const override { return false; }
-    ScoreType rank(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx) const override { return _rfunc(input, output, duration, idx); }
-    ScoreType threshold(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const override { UTILITY_ERROR("Cannot compute threshold for non-objective vector parameter"); return 0; }
+    ScoreType rank(InputType const& input, OutputType const& output, size_t const& idx) const override { return _rfunc(input, output, idx); }
+    ScoreType threshold(InputType const& input, OutputType const& output, size_t const& idx = 0) const override { UTILITY_ERROR("Cannot compute threshold for non-objective vector parameter"); return 0; }
 
     VectorRankingParameter* clone() const override { return new VectorRankingParameter(*this); }
 private:
-    std::function<ScoreType(InputType const&, OutputType const&, DurationType const&, size_t const&)> const _rfunc;
+    std::function<ScoreType(InputType const&, OutputType const&, size_t const&)> const _rfunc;
     std::function<size_t(InputType const&)> const _dfunc;
 };
 
@@ -204,17 +203,14 @@ public:
     bool uses_objective() const { return this->_ptr->uses_objective(); }
     bool discard(InputType const& input) const {
         return this->_ptr->discard(input); }
-    ScoreType rank(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const {
-        return this->_ptr->rank(input, output, duration, idx); }
-    ScoreType threshold(InputType const& input, OutputType const& output, DurationType const& duration, size_t const& idx = 0) const {
-        return this->_ptr->threshold(input, output, duration, idx); }
+    ScoreType rank(InputType const& input, OutputType const& output, size_t const& idx = 0) const {
+        return this->_ptr->rank(input, output, idx); }
+    ScoreType threshold(InputType const& input, OutputType const& output, size_t const& idx = 0) const {
+        return this->_ptr->threshold(input, output, idx); }
 
     size_t dimension(InputType const& input) const { return this->_ptr->dimension(input); }
     friend ostream& operator<<(ostream& os, const TaskRankingParameter<R>& p) { return os << *p._ptr; }
 };
-
-//! \brief Template instance of the commonly-used execution time parameter for appraisal
-template<class R> ScalarRankingParameter<R> execution_time_ranking("execution_time", OptimisationCriterion::MINIMISE, [](TaskInput<R> const& i, TaskOutput<R> const& o, DurationType const& d) { return d.count(); });
 
 } // namespace pExplore
 

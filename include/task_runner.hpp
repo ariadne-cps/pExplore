@@ -99,8 +99,6 @@ private:
     std::condition_variable _output_availability;
 };
 
-typedef std::chrono::microseconds DurationType;
-
 template<class O> class ParameterSearchOutputBufferData;
 
 //! \brief Run a task by detached concurrent search into the parameter space.

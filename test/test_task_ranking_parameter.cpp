@@ -53,21 +53,14 @@ typedef TaskInput<R> I;
 typedef TaskOutput<R> O;
 
 class TestTaskRankingParameter {
-  private:
-    DurationType _duration;
   public:
-
-    TestTaskRankingParameter() {
-        auto now = std::chrono::high_resolution_clock::now();
-        _duration = std::chrono::duration_cast<DurationType>(now-now);
-    }
 
     void test_scalar_ranking_parameter_creation() {
         ScalarRankingParameter<R> p("chosen_step_size", OptimisationCriterion::MAXIMISE,
-                                    [](I const& input, O const& output, DurationType const& duration) { return static_cast<double>(output.o + duration.count() + input.i1); });
+                                    [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto cost = p.rank(input, output, _duration);
+        auto cost = p.rank(input, output);
         UTILITY_TEST_PRINT(p);
         UTILITY_TEST_ASSERT(p.is_scalar());
         UTILITY_TEST_EQUALS(cost,9);
@@ -77,24 +70,24 @@ class TestTaskRankingParameter {
 
     void test_vector_ranking_parameter_creation() {
         VectorRankingParameter<R> p("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                    [](I const& input, O const& output, DurationType const& duration, size_t const& idx) { return static_cast<double>(output.o + duration.count() + input.i2[idx]); },
+                                    [](I const& input, O const& output, size_t const& idx) { return static_cast<double>(output.o + input.i2[idx]); },
                                     [](I const& input) { return input.i2.size(); });
         auto input = I(2,{1,2});
         auto output = O(7);
 
         UTILITY_TEST_PRINT(p)
         UTILITY_TEST_ASSERT(not p.is_scalar())
-        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 0), 8)
-        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 1), 9)
+        UTILITY_TEST_EQUALS(p.rank(input, output, 0), 8)
+        UTILITY_TEST_EQUALS(p.rank(input, output, 1), 9)
         UTILITY_TEST_EQUALS(p.dimension(input),2)
         UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE)
     }
 
     void test_task_ranking_parameter_set() const {
         ScalarRankingParameter<R> p1("chosen_step_size", OptimisationCriterion::MAXIMISE,
-                                     [](I const& input, O const& output, DurationType const& duration) { return static_cast<double>(output.o + duration.count() + input.i1); });
+                                     [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         VectorRankingParameter<R> p2("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                     [](I const& input, O const& output, DurationType const& duration, size_t const& idx) { return static_cast<double>(output.o + duration.count() + input.i2[idx]); },
+                                     [](I const& input, O const& output, size_t const& idx) { return static_cast<double>(output.o + input.i2[idx]); },
                                      [](I const& input) { return input.i2.size(); });
 
         List<TaskRankingParameter<R>> ps = {p1, p2};
