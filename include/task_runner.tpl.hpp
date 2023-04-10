@@ -34,12 +34,15 @@
 #define PEXPLORE_TASK_RUNNER_TPL_HPP
 
 #include "pronest/configurable.tpl.hpp"
+#include "utility/string.hpp"
 #include "task.tpl.hpp"
 #include "task_runner.hpp"
 #include "task_interface.hpp"
 #include "task_manager.hpp"
 
 namespace pExplore {
+
+using Utility::to_string;
 
 template<class C> TaskRunnable<C>::TaskRunnable(ConfigurationType const& configuration) : Configurable<C>(configuration) {
     TaskManager::instance().choose_runner_for(*this);

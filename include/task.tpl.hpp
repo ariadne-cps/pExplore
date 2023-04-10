@@ -35,14 +35,16 @@
 
 #include "utility/container.hpp"
 #include "utility/string.hpp"
-#include "pronest/configuration_search_space.hpp"
+#include "pronest/configuration_search_point.hpp"
 #include "task_interface.hpp"
 #include "task_ranking_space.hpp"
 
 
 namespace pExplore {
 
-class ConfigurationSearchPoint;
+using ProNest::ConfigurationSearchPoint;
+using std::shared_ptr;
+
 class TaskExecutionRanking;
 class ConfigurationSearchSpace;
 
