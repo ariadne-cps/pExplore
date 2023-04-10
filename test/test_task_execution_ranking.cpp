@@ -27,7 +27,6 @@
  */
 
 #include "utility/test.hpp"
-#include "pronest/configuration_search_point.hpp"
 #include "pronest/configuration_search_space.hpp"
 #include "task_execution_ranking.hpp"
 
@@ -37,7 +36,7 @@ using namespace ProNest;
 class TestTaskExecutionRanking {
   public:
 
-    void test_ranking_ordering() {
+    static void test_ranking_ordering() {
         ConfigurationPropertyPath use_subdivisions("use_subdivisions");
         ConfigurationPropertyPath sweep_threshold("sweep_threshold");
         ConfigurationSearchParameter bp(use_subdivisions, false, List<int>({0, 1}));
@@ -62,12 +61,12 @@ class TestTaskExecutionRanking {
         UTILITY_TEST_ASSERT(a4 < a3);
     }
 
-    void test() {
+    static void test() {
         UTILITY_TEST_CALL(test_ranking_ordering());
     }
 };
 
 int main() {
-    TestTaskExecutionRanking().test();
+    TestTaskExecutionRanking::test();
     return UTILITY_TEST_FAILURES;
 }

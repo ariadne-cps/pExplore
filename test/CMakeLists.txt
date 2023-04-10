@@ -4,6 +4,7 @@ set(UNIT_TESTS
     test_task_manager
     test_task_ranking_parameter
     test_task_execution_ranking
+    test_task_runner
 )
 
 foreach(TEST ${UNIT_TESTS})

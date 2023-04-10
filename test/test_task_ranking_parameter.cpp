@@ -82,15 +82,15 @@ class TestTaskRankingParameter {
         auto input = I(2,{1,2});
         auto output = O(7);
 
-        UTILITY_TEST_PRINT(p);
-        UTILITY_TEST_ASSERT(not p.is_scalar());
-        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 0), 8);
-        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 1), 9);
-        UTILITY_TEST_EQUALS(p.dimension(input),2);
-        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE);
+        UTILITY_TEST_PRINT(p)
+        UTILITY_TEST_ASSERT(not p.is_scalar())
+        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 0), 8)
+        UTILITY_TEST_EQUALS(p.rank(input, output, _duration, 1), 9)
+        UTILITY_TEST_EQUALS(p.dimension(input),2)
+        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE)
     }
 
-    void test_task_ranking_parameter_set() {
+    void test_task_ranking_parameter_set() const {
         ScalarRankingParameter<R> p1("chosen_step_size", OptimisationCriterion::MAXIMISE,
                                      [](I const& input, O const& output, DurationType const& duration) { return static_cast<double>(output.o + duration.count() + input.i1); });
         VectorRankingParameter<R> p2("enclosure_widths", OptimisationCriterion::MINIMISE,
@@ -99,13 +99,13 @@ class TestTaskRankingParameter {
 
         List<TaskRankingParameter<R>> ps = {p1, p2};
 
-        UTILITY_TEST_PRINT(ps);
+        UTILITY_TEST_PRINT(ps)
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_scalar_ranking_parameter_creation());
-        UTILITY_TEST_CALL(test_vector_ranking_parameter_creation());
-        UTILITY_TEST_CALL(test_task_ranking_parameter_set());
+        UTILITY_TEST_CALL(test_scalar_ranking_parameter_creation())
+        UTILITY_TEST_CALL(test_vector_ranking_parameter_creation())
+        UTILITY_TEST_CALL(test_task_ranking_parameter_set())
     }
 };
 

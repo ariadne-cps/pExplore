@@ -34,25 +34,25 @@ using namespace pExplore;
 class TestTaskManager {
   public:
 
-    void test_check_nonzero_maximum_concurrency() {
-        UTILITY_TEST_ASSERT(TaskManager::instance().maximum_concurrency()>0);
+    static void test_check_nonzero_maximum_concurrency() {
+        UTILITY_TEST_ASSERT(TaskManager::instance().maximum_concurrency()>0)
     }
 
-    void test_set_concurrency() {
+    static void test_set_concurrency() {
         auto max_concurrency = TaskManager::instance().maximum_concurrency();
         TaskManager::instance().set_concurrency(max_concurrency);
-        UTILITY_TEST_EQUALS(TaskManager::instance().concurrency(),max_concurrency);
-        UTILITY_TEST_FAIL(TaskManager::instance().set_concurrency(0));
-        UTILITY_TEST_FAIL(TaskManager::instance().set_concurrency(1+max_concurrency));
+        UTILITY_TEST_EQUALS(TaskManager::instance().concurrency(),max_concurrency)
+        UTILITY_TEST_FAIL(TaskManager::instance().set_concurrency(0))
+        UTILITY_TEST_FAIL(TaskManager::instance().set_concurrency(1+max_concurrency))
     }
 
-    void test() {
-        UTILITY_TEST_CALL(test_check_nonzero_maximum_concurrency());
-        UTILITY_TEST_CALL(test_set_concurrency());
+    static void test() {
+        UTILITY_TEST_CALL(test_check_nonzero_maximum_concurrency())
+        UTILITY_TEST_CALL(test_set_concurrency())
     }
 };
 
 int main() {
-    TestTaskManager().test();
+    TestTaskManager::test();
     return UTILITY_TEST_FAILURES;
 }
