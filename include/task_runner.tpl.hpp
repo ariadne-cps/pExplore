@@ -35,6 +35,7 @@
 
 #include "pronest/configurable.tpl.hpp"
 #include "utility/string.hpp"
+#include "task_ranking_space.hpp"
 #include "task.tpl.hpp"
 #include "task_runner.hpp"
 #include "task_interface.hpp"
@@ -50,6 +51,10 @@ template<class C> TaskRunnable<C>::TaskRunnable(ConfigurationType const& configu
 
 template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterface<C>> const& runner) {
     this->_runner = runner;
+}
+
+template<class C> void TaskRunnable<C>::set_ranking_space(TaskRankingSpace<C> const& spc) {
+    _runner->task().set_ranking_space(spc);
 }
 
 template<class C> shared_ptr<TaskRunnerInterface<C>>& TaskRunnable<C>::runner() {

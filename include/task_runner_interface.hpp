@@ -69,6 +69,9 @@ template<class C>
 class TaskRunnable : public Configurable<C> {
     friend class TaskManager;
     typedef Configuration<C> ConfigurationType;
+  public:
+    //! \brief Set the ranking space for this runnable, to rank results from multiple configurations
+    void set_ranking_space(TaskRankingSpace<C> const& spc);
   protected:
     TaskRunnable(ConfigurationType const& configuration);
     //! \brief Set a new runner, useful to override the default runner

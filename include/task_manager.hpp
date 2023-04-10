@@ -76,10 +76,6 @@ class TaskManager {
         runnable.set_runner(runner);
     }
 
-    template<class R> void set_ranking_space_for(TaskRunnable<R>& runnable, List<TaskRankingParameter<R>> const& parameters) const {
-        runnable.runner()->task().set_ranking_space(parameters);
-    }
-
     size_t maximum_concurrency() const;
     size_t concurrency() const;
 

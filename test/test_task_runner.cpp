@@ -195,7 +195,7 @@ class TestTaskRunner {
                                                                  [](I const&, O const&, OBJ const&) { return 0.0; },
                                                                  [](I const&, OBJ const&) { return false; }
         );
-        TaskManager::instance().set_ranking_space_for(a, {constraint});
+        a.set_ranking_space( List<TaskRankingParameter<A>>(constraint));
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)
