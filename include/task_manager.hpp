@@ -49,7 +49,6 @@ using ConcLog::Logger;
 
 //! \brief Manages threads and sets runners based on concurrency availability.
 class TaskManager {
-    typedef Map<ConfigurationPropertyPath,List<double>> PropertyRefinementsMap;
   private:
     TaskManager();
   public:
@@ -66,7 +65,7 @@ class TaskManager {
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
         if (_concurrency > 1 and not cfg.is_singleton())
-            runner.reset(new ParameterSearchRunner<T>(cfg,std::min(_concurrency,cfg.search_space().total_points())));
+            runner.reset(new ParameterSearchRunner<T>(cfg,std::min(_concurrency,static_cast<unsigned int>(cfg.search_space().total_points()))));
         else if (_concurrency == 1 and not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();
             CONCLOG_PRINTLN_AT(1,"The configuration is not singleton: using point " << point << " for sequential running.");
@@ -76,10 +75,10 @@ class TaskManager {
         runnable.set_runner(runner);
     }
 
-    size_t maximum_concurrency() const;
-    size_t concurrency() const;
+    unsigned int maximum_concurrency() const;
+    unsigned int concurrency() const;
 
-    void set_concurrency(size_t value);
+    void set_concurrency(unsigned int value);
 
     //! \brief The best points saved
     List<TaskExecutionRanking> best_rankings() const;
@@ -93,8 +92,8 @@ class TaskManager {
     List<int> optimal_point() const;
 
   private:
-    const size_t _maximum_concurrency;
-    size_t _concurrency;
+    unsigned int const _maximum_concurrency;
+    unsigned int _concurrency;
     std::mutex _data_mutex;
     List<TaskExecutionRanking> _best_rankings;
 };

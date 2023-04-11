@@ -36,15 +36,15 @@ using std::make_pair;
 
 TaskManager::TaskManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1) {}
 
-size_t TaskManager::maximum_concurrency() const {
+unsigned int TaskManager::maximum_concurrency() const {
     return _maximum_concurrency;
 }
 
-size_t TaskManager::concurrency() const {
+unsigned int TaskManager::concurrency() const {
     return _concurrency;
 }
 
-void TaskManager::set_concurrency(size_t value) {
+void TaskManager::set_concurrency(unsigned int value) {
     UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0);
     std::lock_guard<std::mutex> lock(_data_mutex);
     _concurrency = value;
