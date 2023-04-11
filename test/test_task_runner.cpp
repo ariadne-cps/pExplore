@@ -53,6 +53,8 @@ std::ostream& operator<<(std::ostream& os, const LevelOptions level) {
     }
 }
 
+namespace ProNest {
+
 class TestConfigurable;
 
 template<> struct Configuration<TestConfigurable> : public SearchableConfiguration {
@@ -118,6 +120,10 @@ template<> struct Configuration<A> : public SearchableConfiguration {
     void set_test_configurable(shared_ptr<TestConfigurableInterface> const& test_configurable) { at<TestConfigurableConfigurationProperty>("test_configurable").set(test_configurable); }
 };
 
+}
+
+namespace pExplore {
+
 template<> struct TaskInput<A> {
     TaskInput(double const& x_) : x(x_) { }
     double const& x;
@@ -144,6 +150,8 @@ template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
         return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0)};
     }
 };
+
+}
 
 class A : public TaskRunnable<A>, public WritableInterface {
 public:
@@ -180,8 +188,10 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(ca);
         UTILITY_TEST_PRINT(search_space);
 
-        UTILITY_TEST_PRINT(TaskManager::instance().maximum_concurrency())
-        TaskManager::instance().set_concurrency(8);
+        auto maximum_concurrency = TaskManager::instance().maximum_concurrency();
+
+        UTILITY_TEST_PRINT(maximum_concurrency)
+        TaskManager::instance().set_concurrency(maximum_concurrency);
 
         A a(ca);
 
