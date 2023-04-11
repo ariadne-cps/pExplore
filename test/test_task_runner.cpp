@@ -154,8 +154,8 @@ public:
     List<double> execute() {
         List<double> result;
         for (size_t i=0; i<10; ++i) {
-            runner()->push(TaskInput<A>(1.0));
-            result.push_back(runner()->pull().y);
+            runner().push(TaskInput<A>(1.0));
+            result.push_back(runner().pull().y);
         }
         return result;
     }
