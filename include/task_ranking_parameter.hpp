@@ -126,6 +126,8 @@ template<class R> class ScalarRankingParameter : public TaskRankingParameterBase
     typedef TaskOutput<R> OutputType;
     ScalarRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&)> const rfunc)
         : TaskRankingParameterBase<R>(name, opt, RankingConstraintSeverity::NONE), _rfunc(rfunc) { }
+    ScalarRankingParameter(OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&)> const rfunc)
+            : ScalarRankingParameter(std::string(), opt, rfunc) { }
 
     bool is_scalar() const override { return true; }
     bool uses_objective() const override { return false; }
@@ -149,6 +151,9 @@ public:
     ScalarObjectiveRankingParameter(String const& name, OptimisationCriterion const& opt, RankingConstraintSeverity const& severity, ObjectiveType const& objective,
                                     MeasureFunctionType const& score, MeasureFunctionType const& threshold, DiscardFunctionType const& discard)
             : TaskRankingParameterBase<R>(name, opt, severity), _objective(objective),  _sfunc(score), _tfunc(threshold), _dfunc(discard) { }
+    ScalarObjectiveRankingParameter(OptimisationCriterion const& opt, RankingConstraintSeverity const& severity, ObjectiveType const& objective,
+                                    MeasureFunctionType const& score, MeasureFunctionType const& threshold, DiscardFunctionType const& discard)
+            : ScalarObjectiveRankingParameter(std::string(), opt, severity, objective, score, threshold, discard) { }
 
     bool is_scalar() const override { return true; }
     bool uses_objective() const override { return true; }
@@ -174,6 +179,8 @@ public:
     typedef TaskOutput<R> OutputType;
     VectorRankingParameter(String const& name, OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&, size_t const&)> const rfunc, std::function<size_t(InputType const&)> const dfunc)
             : TaskRankingParameterBase<R>(name, opt, RankingConstraintSeverity::NONE), _rfunc(rfunc), _dfunc(dfunc) { }
+    VectorRankingParameter(OptimisationCriterion const& opt, std::function<ScoreType(InputType const&, OutputType const&, size_t const&)> const rfunc, std::function<size_t(InputType const&)> const dfunc)
+            : VectorRankingParameter<R>(std::string(), opt, rfunc, dfunc) { }
 
     bool is_scalar() const override { return false; };
     bool uses_objective() const override { return false; }

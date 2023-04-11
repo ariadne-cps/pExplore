@@ -190,11 +190,7 @@ class TestTaskRunner {
         using O = TaskOutput<A>;
         using OBJ = TaskObjective<A>;
         OBJ empty_obj(1.0);
-        auto constraint = ScalarObjectiveRankingParameter<A>("c", OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE, empty_obj,
-                                                                 [](I const&, O const& o, OBJ const&) { return o.y; },
-                                                                 [](I const&, O const&, OBJ const&) { return 0.0; },
-                                                                 [](I const&, OBJ const&) { return false; }
-        );
+        auto constraint = ScalarRankingParameter<A>(OptimisationCriterion::MAXIMISE, [](I const&, O const& o) { return o.y; });
         a.set_ranking_space( List<TaskRankingParameter<A>>(constraint));
 
         auto result = a.execute();
