@@ -134,7 +134,6 @@ template<> struct TaskObjective<A> {
 };
 
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
-    Task() : ParameterSearchTaskBase<A>("test") { }
     TaskOutput<A> run(TaskInput<A> const& in, Configuration<A> const& cfg) const override {
         double level_value = -2.0;
         switch (cfg.level()) {
