@@ -73,24 +73,24 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
     typedef typename TaskRunnerInterface<C>::ConfigurationType ConfigurationType;
 
     TaskRunnerBase(ConfigurationType const& configuration)
-        : _task(new TaskType()), _configuration(configuration) { }
+        : _task(TaskType()), _configuration(configuration) { }
 
-    TaskType& task() override { return *_task; };
-    TaskType const& task() const override { return *_task; };
+    TaskType& task() override { return _task; };
+    TaskType const& task() const override { return _task; };
     ConfigurationType const& configuration() const override { return _configuration; }
 
     virtual ~TaskRunnerBase() = default;
 
   protected:
-    shared_ptr<TaskType> const _task;
+    TaskType _task;
     ConfigurationType const _configuration;
 };
 
 template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const& configuration) : TaskRunnerBase<C>(configuration) { }
 
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
-    OutputType result = this->_task->run(input,this->configuration());
-    auto failed_constraints = this->_task->ranking_space().failed_critical_constraints(input,result);
+    OutputType result = this->_task.run(input,this->configuration());
+    auto failed_constraints = this->_task.ranking_space().failed_critical_constraints(input,result);
     if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
     _last_output.reset(new OutputType(result));
 }
@@ -105,7 +105,7 @@ template<class C> void DetachedRunner<C>::_loop() {
         _input_availability.wait(locker, [this]() { return _input_buffer.size()>0 || _terminate; });
         if (_terminate) break;
         auto input = _input_buffer.pull();
-        OutputType output = this->_task->run(input,this->configuration());
+        OutputType output = this->_task.run(input,this->configuration());
         _output_buffer.push(output);
         _output_availability.notify_all();
     }
@@ -113,7 +113,7 @@ template<class C> void DetachedRunner<C>::_loop() {
 
 template<class C> DetachedRunner<C>::DetachedRunner(ConfigurationType const& configuration)
         : TaskRunnerBase<C>(configuration),
-          _thread([this]() { _loop(); }, this->_task->name(), false),
+          _thread([this]() { _loop(); }, this->_task.name(), false),
           _input_buffer(InputBufferType(1)),_output_buffer(OutputBufferType(1)),
           _last_used_input(1), _active(false), _terminate(false) { }
 
@@ -136,7 +136,7 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     std::unique_lock<std::mutex> locker(_output_mutex);
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
-    auto failed_constraints = this->_task->ranking_space().failed_critical_constraints(_last_used_input.pull(),result);
+    auto failed_constraints = this->_task.ranking_space().failed_critical_constraints(_last_used_input.pull(),result);
     if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
     return result;
 }
@@ -167,7 +167,7 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         auto pkg = _input_buffer.pull();
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
-            auto output = this->_task->run(pkg.first,cfg);
+            auto output = this->_task.run(pkg.first,cfg);
             _output_buffer.push(OutputBufferContentType(output,pkg.second));
         } catch (std::exception& e) {
             ++_failures;
@@ -183,7 +183,7 @@ template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationT
           _input_buffer(InputBufferType(concurrency)),_output_buffer(OutputBufferType(concurrency)),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
-        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task->name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
+        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task.name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
 }
 
 template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {
@@ -218,7 +218,7 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
         auto io_data = _output_buffer.pull();
         outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(io_data.point(),io_data.output()));
     }
-    auto rankings = this->_task->rank(outputs,input);
+    auto rankings = this->_task.rank(outputs,input);
     CONCLOG_PRINTLN_VAR(rankings);
 
     Set<ConfigurationSearchPoint> new_points;
@@ -234,7 +234,7 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
 
     auto best = rankings.rbegin()->point();
     if (rankings.rbegin()->critical_failures() > 0) {
-        throw CriticalRankingFailureException<C>(this->_task->ranking_space().failed_critical_constraints(input, outputs.get(best)));
+        throw CriticalRankingFailureException<C>(this->_task.ranking_space().failed_critical_constraints(input, outputs.get(best)));
     }
     TaskManager::instance().append_best_ranking(*rankings.rbegin());
 
