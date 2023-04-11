@@ -34,39 +34,35 @@
 #define PEXPLORE_TASK_EXECUTION_RANKING_HPP
 
 #include "utility/container.hpp"
+#include "utility/writable.hpp"
 #include "pronest/configuration_search_point.hpp"
-#include "task_ranking_parameter.hpp"
 
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
-using Utility::List;
-
-typedef double ScoreType;
+using Utility::WritableInterface;
+using std::to_string;
+using std::ostream;
 
 class TaskExecutionRanking;
 
 template<class R> class CriticalRankingFailureException : public std::runtime_error {
 public:
-    CriticalRankingFailureException(List<TaskRankingParameter<R>> const& parameters) : std::runtime_error("The execution has critical failures for these parameters: " + to_string(parameters)) { }
+    CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
 };
 
 class TaskExecutionRanking : public WritableInterface {
 public:
-    TaskExecutionRanking(ConfigurationSearchPoint const& p, ScoreType const& s, size_t const& permissive_failures, size_t const& critical_failures);
+    TaskExecutionRanking(ConfigurationSearchPoint const& p, double s);
     ConfigurationSearchPoint const& point() const;
-    ScoreType const& score() const;
-    size_t const& permissive_failures() const;
-    size_t const& critical_failures() const;
-    //! \brief Ordering is based on number of failures, followed by cost
+    double score() const;
+    //! \brief Ordering is based on score
     bool operator<(TaskExecutionRanking const& s) const;
 
     virtual ostream& _write(ostream& os) const;
 private:
     ConfigurationSearchPoint _point;
-    ScoreType _score;
-    size_t _permissive_failures;
-    size_t _critical_failures;
+    double _score;
 };
 
 } // namespace pExplore

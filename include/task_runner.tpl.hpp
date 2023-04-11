@@ -35,7 +35,6 @@
 
 #include "pronest/configurable.tpl.hpp"
 #include "utility/string.hpp"
-#include "task_ranking_space.hpp"
 #include "task.tpl.hpp"
 #include "task_runner.hpp"
 #include "task_interface.hpp"
@@ -53,8 +52,8 @@ template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterfac
     this->_runner = runner;
 }
 
-template<class C> void TaskRunnable<C>::set_ranking_space(TaskRankingSpace<C> const& spc) {
-    _runner->task().set_ranking_space(spc);
+template<class C> void TaskRunnable<C>::set_ranking_constraint(TaskRankingConstraint<C> const& constraint) {
+    _runner->task().set_ranking_constraint(constraint);
 }
 
 template<class C> TaskRunnerInterface<C>& TaskRunnable<C>::runner() {
@@ -90,8 +89,13 @@ template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const&
 
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
     OutputType result = this->_task.run(input,this->configuration());
-    auto failed_constraints = this->_task.ranking_space().failed_critical_constraints(input,result);
-    if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
+    auto const& constraint = this->_task.ranking_constraint();
+    auto score = constraint.rank(input,result);
+    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
+        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and score < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and score > 0)) {
+            throw CriticalRankingFailureException<C>(score);
+        }
+    }
     _last_output.reset(new OutputType(result));
 }
 
@@ -136,8 +140,13 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     std::unique_lock<std::mutex> locker(_output_mutex);
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
-    auto failed_constraints = this->_task.ranking_space().failed_critical_constraints(_last_used_input.pull(),result);
-    if (not failed_constraints.empty()) throw CriticalRankingFailureException<C>(failed_constraints);
+    auto const& constraint = this->_task.ranking_constraint();
+    auto score = constraint.rank(_last_used_input.pull(),result);
+    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
+        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and score < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and score > 0)) {
+            throw CriticalRankingFailureException<C>(score);
+        }
+    }
     return result;
 }
 
@@ -232,13 +241,17 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     for (auto p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
-    auto best = rankings.rbegin()->point();
-    if (rankings.rbegin()->critical_failures() > 0) {
-        throw CriticalRankingFailureException<C>(this->_task.ranking_space().failed_critical_constraints(input, outputs.get(best)));
-    }
-    TaskManager::instance().append_best_ranking(*rankings.rbegin());
+    auto best = *rankings.rbegin();
 
-    return outputs.get(best);
+    auto const& constraint = this->_task.ranking_constraint();
+    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
+        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and best.score() < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and best.score() > 0)) {
+            throw CriticalRankingFailureException<C>(best.score());
+        }
+    }
+    TaskManager::instance().append_best_ranking(best);
+
+    return outputs.get(best.point());
 }
 
 } // namespace pExplore

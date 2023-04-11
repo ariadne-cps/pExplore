@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_task_ranking_parameter.cpp
+ *            test_task_ranking_constraint.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,7 +28,7 @@
 
 #include "utility/test.hpp"
 #include "utility/array.hpp"
-#include "task_ranking_parameter.hpp"
+#include "task_ranking_constraint.hpp"
 #include "task_runner_interface.hpp"
 
 using namespace pExplore;
@@ -52,57 +52,27 @@ template<> struct TaskOutput<R> {
 typedef TaskInput<R> I;
 typedef TaskOutput<R> O;
 
-class TestTaskRankingParameter {
+class TestTaskRankingConstraint {
   public:
 
     void test_scalar_ranking_parameter_creation() {
-        ScalarRankingParameter<R> p("chosen_step_size", OptimisationCriterion::MAXIMISE,
+        TaskRankingConstraint<R> c("chosen_step_size", OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE,
                                     [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto cost = p.rank(input, output);
-        UTILITY_TEST_PRINT(p);
-        UTILITY_TEST_ASSERT(p.is_scalar());
+        auto cost = c.rank(input, output);
+        UTILITY_TEST_PRINT(c);
         UTILITY_TEST_EQUALS(cost,9);
-        UTILITY_TEST_EQUALS(p.dimension(input),1);
-        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MAXIMISE);
-    }
-
-    void test_vector_ranking_parameter_creation() {
-        VectorRankingParameter<R> p("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                    [](I const& input, O const& output, size_t const& idx) { return static_cast<double>(output.o + input.i2[idx]); },
-                                    [](I const& input) { return input.i2.size(); });
-        auto input = I(2,{1,2});
-        auto output = O(7);
-
-        UTILITY_TEST_PRINT(p)
-        UTILITY_TEST_ASSERT(not p.is_scalar())
-        UTILITY_TEST_EQUALS(p.rank(input, output, 0), 8)
-        UTILITY_TEST_EQUALS(p.rank(input, output, 1), 9)
-        UTILITY_TEST_EQUALS(p.dimension(input),2)
-        UTILITY_TEST_EQUALS(p.optimisation(), OptimisationCriterion::MINIMISE)
-    }
-
-    void test_task_ranking_parameter_set() const {
-        ScalarRankingParameter<R> p1("chosen_step_size", OptimisationCriterion::MAXIMISE,
-                                     [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
-        VectorRankingParameter<R> p2("enclosure_widths", OptimisationCriterion::MINIMISE,
-                                     [](I const& input, O const& output, size_t const& idx) { return static_cast<double>(output.o + input.i2[idx]); },
-                                     [](I const& input) { return input.i2.size(); });
-
-        List<TaskRankingParameter<R>> ps = {p1, p2};
-
-        UTILITY_TEST_PRINT(ps)
+        UTILITY_TEST_EQUALS(c.optimisation(), OptimisationCriterion::MAXIMISE);
+        UTILITY_TEST_EQUALS(c.severity(), RankingConstraintSeverity::PERMISSIVE);
     }
 
     void test() {
         UTILITY_TEST_CALL(test_scalar_ranking_parameter_creation())
-        UTILITY_TEST_CALL(test_vector_ranking_parameter_creation())
-        UTILITY_TEST_CALL(test_task_ranking_parameter_set())
     }
 };
 
 int main() {
-    TestTaskRankingParameter().test();
+    TestTaskRankingConstraint().test();
     return UTILITY_TEST_FAILURES;
 }

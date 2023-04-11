@@ -40,7 +40,6 @@
 #include "utility/container.hpp"
 #include "task_runner.hpp"
 #include "task_execution_ranking.hpp"
-#include "task_ranking_space.hpp"
 
 namespace pExplore {
 

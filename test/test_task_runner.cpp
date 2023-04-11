@@ -49,7 +49,7 @@ std::ostream& operator<<(std::ostream& os, const LevelOptions level) {
         case LevelOptions::LOW: os << "LOW"; return os;
         case LevelOptions::MEDIUM: os << "MEDIUM"; return os;
         case LevelOptions::HIGH: os << "HIGH"; return os;
-        default: UTILITY_FAIL_MSG("Unhandled LevelOptions value");
+        default: UTILITY_FAIL_MSG("Unhandled LevelOptions value")
     }
 }
 
@@ -134,11 +134,6 @@ template<> struct TaskOutput<A> {
     double const y;
 };
 
-template<> struct TaskObjective<A> {
-    TaskObjective(double const& obj_) : obj(obj_) { }
-    double const obj;
-};
-
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
     TaskOutput<A> run(TaskInput<A> const& in, Configuration<A> const& cfg) const override {
         double level_value;
@@ -197,10 +192,9 @@ class TestTaskRunner {
 
         using I = TaskInput<A>;
         using O = TaskOutput<A>;
-        using OBJ = TaskObjective<A>;
-        OBJ empty_obj(1.0);
-        auto constraint = ScalarRankingParameter<A>(OptimisationCriterion::MAXIMISE, [](I const&, O const& o) { return o.y; });
-        a.set_ranking_space( List<TaskRankingParameter<A>>(constraint));
+        double offset = 8.0;
+        auto constraint = TaskRankingConstraint<A>(OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE,[offset](I const&, O const& o) { return (o.y - offset)*(o.y - offset); });
+        a.set_ranking_constraint(constraint);
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)

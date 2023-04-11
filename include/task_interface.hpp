@@ -49,11 +49,10 @@ using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 
 class TaskExecutionRanking;
-template<class R> class TaskRankingSpace;
+template<class R> class TaskRankingConstraint;
 
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
-template<class R> struct TaskObjective;
 template<class R> struct Task;
 
 template<class R>
@@ -65,10 +64,10 @@ class TaskInterface {
 
     //! \brief The name of the task, to be used for thread naming
     virtual String name() const = 0;
-    //! \brief Return the ranking space for the task
-    virtual TaskRankingSpace<R> const& ranking_space() const = 0;
-    //! \brief Set the ranking space for the task
-    virtual void set_ranking_space(TaskRankingSpace<R> const& space) = 0;
+    //! \brief Return the ranking constraint for the task
+    virtual TaskRankingConstraint<R> const& ranking_constraint() const = 0;
+    //! \brief Set the ranking constraint for the task
+    virtual void set_ranking_constraint(TaskRankingConstraint<R> const& constraint) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;

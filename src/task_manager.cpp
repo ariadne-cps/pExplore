@@ -112,7 +112,6 @@ void TaskManager::print_best_rankings() const {
         for (auto ranking : _best_rankings) {
             auto point = ranking.point();
             for (size_t i=0; i<dimension; ++i) values.at(i).push_back(point.coordinates()[i]);
-            soft_failures.push_back(ranking.permissive_failures());
         }
         file << "figure(1);\n";
         file << "hold on;\n";
@@ -122,8 +121,6 @@ void TaskManager::print_best_rankings() const {
             std::replace(name.begin(), name.end(), '_', ' ');
             file << "plot(x,y" << i << ",'DisplayName','" << name << "');\n";
         }
-        file << "yf = " << soft_failures << ";\n";
-        file << "plot(x,yf,'DisplayName','(soft failures)');\n";
 
         file << "legend;\n";
         file << "hold off;\n";
