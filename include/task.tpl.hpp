@@ -43,10 +43,8 @@
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
-using std::shared_ptr;
 
 class TaskExecutionRanking;
-class ConfigurationSearchSpace;
 
 //! \brief The base for parameter search tasks
 //! \details Useful to streamline task construction
@@ -56,18 +54,17 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
   protected:
-    ParameterSearchTaskBase(String const& name)
-        : _name(name), _ranking_space(shared_ptr<TaskRankingSpace<R>>(new TaskRankingSpace<R>({}))) {}
+    ParameterSearchTaskBase(String const& name) : _name(name), _ranking_space(TaskRankingSpace<R>({})) {}
   public:
     String name() const override { return _name; }
-    TaskRankingSpace<R> const& ranking_space() const override { return *_ranking_space; }
-    void set_ranking_space(TaskRankingSpace<R> const& space) override { _ranking_space.reset(space.clone()); }
+    TaskRankingSpace<R> const& ranking_space() const override { return _ranking_space; }
+    void set_ranking_space(TaskRankingSpace<R> const& space) override { _ranking_space = space; }
 
-    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override { return _ranking_space->rank(data, input); }
+    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override { return _ranking_space.rank(data, input); }
 
   private:
     String const _name;
-    shared_ptr<TaskRankingSpace<R>> _ranking_space;
+    TaskRankingSpace<R> _ranking_space;
 };
 
 } // namespace pExplore

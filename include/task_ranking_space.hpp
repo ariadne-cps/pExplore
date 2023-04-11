@@ -165,7 +165,7 @@ class TaskRankingSpace : public WritableInterface {
     }
 
   private:
-    List<TaskRankingParameter<R>> const _parameters;
+    List<TaskRankingParameter<R>> _parameters;
 };
 
 } // namespace pExplore
