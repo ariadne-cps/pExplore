@@ -141,11 +141,11 @@ template<> struct TaskObjective<A> {
 
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
     TaskOutput<A> run(TaskInput<A> const& in, Configuration<A> const& cfg) const override {
-        double level_value = -2.0;
+        double level_value;
         switch (cfg.level()) {
-            case LevelOptions::HIGH : level_value++;
-            case LevelOptions::MEDIUM : level_value++;
-            default : level_value++;
+            case LevelOptions::HIGH : level_value = 2; break;
+            case LevelOptions::MEDIUM : level_value = 1; break;
+            default : level_value = 0;
         }
         return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0)};
     }
