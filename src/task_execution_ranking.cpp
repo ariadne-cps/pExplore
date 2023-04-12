@@ -33,8 +33,8 @@ namespace pExplore {
 
 using Utility::to_string;
 
-TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p, double s)
-           : _point(p), _score(s) { }
+TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion)
+           : _point(p), _score(s), _criterion(criterion) { }
 
 ConfigurationSearchPoint const& TaskExecutionRanking::point() const {
     return _point;
@@ -45,7 +45,15 @@ double TaskExecutionRanking::score() const {
 }
 
 bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
-    return this->_score < s._score;
+    UTILITY_PRECONDITION(_criterion == s._criterion)
+    switch (_criterion) {
+        case RankingCriterion::MAXIMISE :
+            return _score < s._score;
+        case RankingCriterion::MINIMISE_POSITIVE :
+            return ((_score >= 0 and s._score >= 0) ? _score > s._score : _score < s._score);
+        default :
+            UTILITY_FAIL_MSG("Unhandled RankingCriterion value.")
+    }
 }
 
 ostream& TaskExecutionRanking::_write(ostream& os) const {

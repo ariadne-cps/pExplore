@@ -44,7 +44,18 @@ using Utility::WritableInterface;
 using std::to_string;
 using std::ostream;
 
-class TaskExecutionRanking;
+//! \brief The criterion for ranking
+//! \details MAXIMISE: the highest values are preferred
+//!          MINIMISE_POSITIVE: positive values are preferred with small modulus, followed by negatives with the usual order
+enum class RankingCriterion { MINIMISE_POSITIVE, MAXIMISE };
+inline std::ostream& operator<<(std::ostream& os, const RankingCriterion opt) {
+    switch (opt) {
+        case RankingCriterion::MAXIMISE: os << "MAXIMISE"; break;
+        case RankingCriterion::MINIMISE_POSITIVE: os << "MINIMISE_POSITIVE"; break;
+        default: UTILITY_FAIL_MSG("Unhandled RankingCriterion value.");
+    }
+    return os;
+}
 
 template<class R> class CriticalRankingFailureException : public std::runtime_error {
 public:
@@ -53,7 +64,7 @@ public:
 
 class TaskExecutionRanking : public WritableInterface {
 public:
-    TaskExecutionRanking(ConfigurationSearchPoint const& p, double s);
+    TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion);
     ConfigurationSearchPoint const& point() const;
     double score() const;
     //! \brief Ordering is based on score
@@ -63,6 +74,7 @@ public:
 private:
     ConfigurationSearchPoint _point;
     double _score;
+    RankingCriterion _criterion;
 };
 
 } // namespace pExplore

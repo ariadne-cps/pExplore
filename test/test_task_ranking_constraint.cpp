@@ -56,15 +56,15 @@ class TestTaskRankingConstraint {
   public:
 
     void test_scalar_ranking_parameter_creation() {
-        TaskRankingConstraint<R> c("chosen_step_size", OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE,
-                                    [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
+        TaskRankingConstraint<R> c("chosen_step_size", RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE,
+                                   [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
         auto cost = c.rank(input, output);
         UTILITY_TEST_PRINT(c);
         UTILITY_TEST_EQUALS(cost,9);
-        UTILITY_TEST_EQUALS(c.optimisation(), OptimisationCriterion::MAXIMISE);
-        UTILITY_TEST_EQUALS(c.severity(), RankingConstraintSeverity::PERMISSIVE);
+        UTILITY_TEST_EQUALS(c.criterion(), RankingCriterion::MAXIMISE);
+        UTILITY_TEST_EQUALS(c.severity(), ConstraintSeverity::PERMISSIVE);
     }
 
     void test() {

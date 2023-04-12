@@ -54,25 +54,15 @@ using std::ostream;
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
 
-enum class OptimisationCriterion { MINIMISE, MAXIMISE };
-inline std::ostream& operator<<(std::ostream& os, const OptimisationCriterion opt) {
-    switch (opt) {
-        case OptimisationCriterion::MAXIMISE: os << "MAXIMISE"; break;
-        case OptimisationCriterion::MINIMISE: os << "MINIMISE"; break;
-        default: UTILITY_FAIL_MSG("Unhandled OptimisationCriterion value.");
-    }
-    return os;
-}
-
 //! \brief Enumeration for the severity of satisfying a constraint
 //! \details PERMISSIVE: satisfying the constraint is only desired
 //!          CRITICAL: satisfying the constraint is mandatory
-enum class RankingConstraintSeverity { PERMISSIVE, CRITICAL };
-inline std::ostream& operator<<(std::ostream& os, const RankingConstraintSeverity severity) {
+enum class ConstraintSeverity { PERMISSIVE, CRITICAL };
+inline std::ostream& operator<<(std::ostream& os, const ConstraintSeverity severity) {
     switch (severity) {
-        case RankingConstraintSeverity::PERMISSIVE: os << "PERMISSIVE"; break;
-        case RankingConstraintSeverity::CRITICAL: os << "CRITICAL"; break;
-        default: UTILITY_FAIL_MSG("Unhandled RankingConstraintSeverity value.");
+        case ConstraintSeverity::PERMISSIVE: os << "PERMISSIVE"; break;
+        case ConstraintSeverity::CRITICAL: os << "CRITICAL"; break;
+        default: UTILITY_FAIL_MSG("Unhandled ConstraintSeverity value.");
     }
     return os;
 }
@@ -82,24 +72,23 @@ template<class R> class TaskRankingConstraint : public WritableInterface {
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    TaskRankingConstraint(String const& name, OptimisationCriterion const& opt, RankingConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : _name(name), _optimisation(opt), _severity(severity), _func(func) { }
-    TaskRankingConstraint(OptimisationCriterion const& opt, RankingConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : TaskRankingConstraint(std::string(), opt, severity, func) { }
+    TaskRankingConstraint(String const& name, RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+            : _name(name), _criterion(criterion), _severity(severity), _func(func) { }
+    TaskRankingConstraint(RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+            : TaskRankingConstraint(std::string(), criterion, severity, func) { }
     TaskRankingConstraint()
-            : TaskRankingConstraint(OptimisationCriterion::MAXIMISE, RankingConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
+            : TaskRankingConstraint(RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
 
     String const& name() const { return _name; }
-    OptimisationCriterion optimisation() const { return _optimisation; }
-    RankingConstraintSeverity severity() const { return _severity; }
+    RankingCriterion criterion() const { return _criterion; }
+    ConstraintSeverity severity() const { return _severity; }
 
     double rank(InputType const& input, OutputType const& output) const { return _func(input, output); }
 
     Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const {
         Set<TaskExecutionRanking> result;
         for (auto entry : data) {
-            auto val = rank(input,entry.second);
-            result.insert({entry.first,(_optimisation == OptimisationCriterion::MAXIMISE ? val : -val)});
+            result.insert({entry.first, rank(input,entry.second), _criterion});
         }
         return result;
     }
@@ -107,12 +96,12 @@ template<class R> class TaskRankingConstraint : public WritableInterface {
     ostream& _write(ostream& os) const override { return os << *this; }
 
     friend ostream& operator<<(ostream& os, TaskRankingConstraint<R> const& p) {
-        os << "{'" << p.name() << "'," << p.optimisation() << "," << p.severity() << "}"; return os; }
+        os << "{'" << p.name() << "'," << p.criterion() << "," << p.severity() << "}"; return os; }
 
   private:
     String _name;
-    OptimisationCriterion _optimisation;
-    RankingConstraintSeverity _severity;
+    RankingCriterion _criterion;
+    ConstraintSeverity _severity;
     std::function<double(InputType const&, OutputType const&)> _func;
 };
 

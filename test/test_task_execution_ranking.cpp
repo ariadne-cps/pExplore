@@ -47,18 +47,42 @@ class TestTaskExecutionRanking {
         ConfigurationSearchPoint point2 = space.make_point({{use_subdivisions, 1}, {sweep_threshold, 2}});
         ConfigurationSearchPoint point3 = space.make_point({{use_subdivisions, 1}, {sweep_threshold, 3}});
         ConfigurationSearchPoint point4 = space.make_point({{use_subdivisions, 0}, {sweep_threshold, 4}});
-        TaskExecutionRanking a1(point1, 2.0);
-        TaskExecutionRanking a2(point2, 4.0);
-        TaskExecutionRanking a3(point3, 3.0);
-        TaskExecutionRanking a4(point4, -1.0);
-        Set<TaskExecutionRanking> as = {a1, a2, a3, a4};
 
-        UTILITY_TEST_PRINT(as);
-        UTILITY_TEST_ASSERT(a1 < a2);
-        UTILITY_TEST_ASSERT(a1 < a3);
-        UTILITY_TEST_ASSERT(a4 < a1);
-        UTILITY_TEST_ASSERT(a3 < a2);
-        UTILITY_TEST_ASSERT(a4 < a3);
+        {
+            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
+            TaskExecutionRanking a2(point2, 4.0, RankingCriterion::MINIMISE_POSITIVE);
+
+            bool dummy = true;
+            UTILITY_TEST_FAIL(dummy = a1 < a2);
+            UTILITY_TEST_ASSERT(dummy)
+        }
+
+        {
+            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
+            TaskExecutionRanking a2(point2, 4.0, RankingCriterion::MAXIMISE);
+            TaskExecutionRanking a3(point3, 3.0, RankingCriterion::MAXIMISE);
+            TaskExecutionRanking a4(point4, -1.0, RankingCriterion::MAXIMISE);
+
+            UTILITY_TEST_ASSERT(a1 < a2);
+            UTILITY_TEST_ASSERT(a1 < a3);
+            UTILITY_TEST_ASSERT(a4 < a1);
+            UTILITY_TEST_ASSERT(a3 < a2);
+            UTILITY_TEST_ASSERT(a4 < a3);
+        }
+
+        {
+            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MINIMISE_POSITIVE);
+            TaskExecutionRanking a2(point2, -2.0, RankingCriterion::MINIMISE_POSITIVE);
+            TaskExecutionRanking a3(point3, 3.0, RankingCriterion::MINIMISE_POSITIVE);
+            TaskExecutionRanking a4(point4, -1.0, RankingCriterion::MINIMISE_POSITIVE);
+
+            UTILITY_TEST_ASSERT(a2 < a1);
+            UTILITY_TEST_ASSERT(a3 < a1);
+            UTILITY_TEST_ASSERT(a4 < a1);
+            UTILITY_TEST_ASSERT(a2 < a3);
+            UTILITY_TEST_ASSERT(a2 < a4);
+        }
+
     }
 
     static void test() {

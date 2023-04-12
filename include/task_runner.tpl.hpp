@@ -91,8 +91,8 @@ template<class C> void SequentialRunner<C>::push(InputType const& input) {
     OutputType result = this->_task.run(input,this->configuration());
     auto const& constraint = this->_task.ranking_constraint();
     auto score = constraint.rank(input,result);
-    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
-        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and score < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and score > 0)) {
+    if (constraint.severity() == ConstraintSeverity::CRITICAL) {
+        if ((constraint.criterion() == RankingCriterion::MAXIMISE and score < 0) or (constraint.criterion() == RankingCriterion::MINIMISE_POSITIVE and score > 0)) {
             throw CriticalRankingFailureException<C>(score);
         }
     }
@@ -142,8 +142,8 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     auto result = _output_buffer.pull();
     auto const& constraint = this->_task.ranking_constraint();
     auto score = constraint.rank(_last_used_input.pull(),result);
-    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
-        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and score < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and score > 0)) {
+    if (constraint.severity() == ConstraintSeverity::CRITICAL) {
+        if ((constraint.criterion() == RankingCriterion::MAXIMISE and score < 0) or (constraint.criterion() == RankingCriterion::MINIMISE_POSITIVE and score > 0)) {
             throw CriticalRankingFailureException<C>(score);
         }
     }
@@ -244,8 +244,8 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     auto best = *rankings.rbegin();
 
     auto const& constraint = this->_task.ranking_constraint();
-    if (constraint.severity() == RankingConstraintSeverity::CRITICAL) {
-        if ((constraint.optimisation() == OptimisationCriterion::MAXIMISE and best.score() < 0) or (constraint.optimisation() == OptimisationCriterion::MINIMISE and best.score() > 0)) {
+    if (constraint.severity() == ConstraintSeverity::CRITICAL) {
+        if ((constraint.criterion() == RankingCriterion::MAXIMISE and best.score() < 0) or (constraint.criterion() == RankingCriterion::MINIMISE_POSITIVE and best.score() > 0)) {
             throw CriticalRankingFailureException<C>(best.score());
         }
     }
