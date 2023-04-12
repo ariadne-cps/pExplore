@@ -1,5 +1,5 @@
 /***************************************************************************
- *            task_execution_ranking.cpp
+ *            point_ranking.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -27,24 +27,24 @@
  */
 
 #include "utility/string.hpp"
-#include "task_execution_ranking.hpp"
+#include "point_ranking.hpp"
 
 namespace pExplore {
 
 using Utility::to_string;
 
-TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion)
+PointRanking::PointRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion)
            : _point(p), _score(s), _criterion(criterion) { }
 
-ConfigurationSearchPoint const& TaskExecutionRanking::point() const {
+ConfigurationSearchPoint const& PointRanking::point() const {
     return _point;
 }
 
-double TaskExecutionRanking::score() const {
+double PointRanking::score() const {
     return _score;
 }
 
-bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
+bool PointRanking::operator<(PointRanking const& s) const {
     UTILITY_PRECONDITION(_criterion == s._criterion)
     if (_score == s._score)
         return _point < s._point;
@@ -59,7 +59,7 @@ bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
     }
 }
 
-ostream& TaskExecutionRanking::_write(ostream& os) const {
+ostream& PointRanking::_write(ostream& os) const {
     return os << "{" << _point << ":" << _score << "}";
 }
 } // namespace pExplore

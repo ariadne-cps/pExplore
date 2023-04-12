@@ -53,7 +53,7 @@ template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterfac
     this->_runner = runner;
 }
 
-template<class C> void TaskRunnable<C>::set_ranking_constraint(TaskRankingConstraint<C> const& constraint) {
+template<class C> void TaskRunnable<C>::set_ranking_constraint(RankingConstraint<C> const& constraint) {
     _runner->task().set_ranking_constraint(constraint);
 }
 

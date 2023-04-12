@@ -1,5 +1,5 @@
 /***************************************************************************
- *            task_execution_ranking.hpp
+ *            point_ranking.hpp
  *
  *  Copyright  2007-20  Luca Geretti
  *
@@ -30,8 +30,8 @@
  *  \brief Class for defining the score for a point.
  */
 
-#ifndef PEXPLORE_TASK_EXECUTION_RANKING_HPP
-#define PEXPLORE_TASK_EXECUTION_RANKING_HPP
+#ifndef PEXPLORE_POINT_RANKING
+#define PEXPLORE_POINT_RANKING
 
 #include "utility/container.hpp"
 #include "utility/writable.hpp"
@@ -62,13 +62,13 @@ public:
     CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
 };
 
-class TaskExecutionRanking : public WritableInterface {
+class PointRanking : public WritableInterface {
 public:
-    TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion);
+    PointRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion);
     ConfigurationSearchPoint const& point() const;
     double score() const;
     //! \brief Ordering is based on score
-    bool operator<(TaskExecutionRanking const& s) const;
+    bool operator<(PointRanking const& s) const;
 
     virtual ostream& _write(ostream& os) const;
 private:
@@ -79,4 +79,4 @@ private:
 
 } // namespace pExplore
 
-#endif // PEXPLORE_TASK_EXECUTION_RANKING_HPP
+#endif // PEXPLORE_POINT_RANKING

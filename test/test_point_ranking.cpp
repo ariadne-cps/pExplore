@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_task_execution_ranking.cpp
+ *            test_point_ranking.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,12 +28,12 @@
 
 #include "utility/test.hpp"
 #include "pronest/configuration_search_space.hpp"
-#include "task_execution_ranking.hpp"
+#include "point_ranking.hpp"
 
 using namespace pExplore;
 using namespace ProNest;
 
-class TestTaskExecutionRanking {
+class TestPointRanking {
   public:
 
     static void test_ranking_ordering() {
@@ -49,8 +49,8 @@ class TestTaskExecutionRanking {
         ConfigurationSearchPoint point4 = space.make_point({{use_subdivisions, 0}, {sweep_threshold, 4}});
 
         {
-            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
-            TaskExecutionRanking a2(point2, 4.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
+            PointRanking a2(point2, 4.0, RankingCriterion::MINIMISE_POSITIVE);
 
             bool dummy = true;
             UTILITY_TEST_FAIL(dummy = a1 < a2);
@@ -58,10 +58,10 @@ class TestTaskExecutionRanking {
         }
 
         {
-            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
-            TaskExecutionRanking a2(point2, 4.0, RankingCriterion::MAXIMISE);
-            TaskExecutionRanking a3(point3, 3.0, RankingCriterion::MAXIMISE);
-            TaskExecutionRanking a4(point4, -1.0, RankingCriterion::MAXIMISE);
+            PointRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
+            PointRanking a2(point2, 4.0, RankingCriterion::MAXIMISE);
+            PointRanking a3(point3, 3.0, RankingCriterion::MAXIMISE);
+            PointRanking a4(point4, -1.0, RankingCriterion::MAXIMISE);
 
             UTILITY_TEST_ASSERT(a1 < a2);
             UTILITY_TEST_ASSERT(a1 < a3);
@@ -71,10 +71,10 @@ class TestTaskExecutionRanking {
         }
 
         {
-            TaskExecutionRanking a1(point1, 2.0, RankingCriterion::MINIMISE_POSITIVE);
-            TaskExecutionRanking a2(point2, -2.0, RankingCriterion::MINIMISE_POSITIVE);
-            TaskExecutionRanking a3(point3, 3.0, RankingCriterion::MINIMISE_POSITIVE);
-            TaskExecutionRanking a4(point4, -1.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointRanking a1(point1, 2.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointRanking a2(point2, -2.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointRanking a3(point3, 3.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointRanking a4(point4, -1.0, RankingCriterion::MINIMISE_POSITIVE);
 
             UTILITY_TEST_ASSERT(a2 < a1);
             UTILITY_TEST_ASSERT(a3 < a1);
@@ -91,6 +91,6 @@ class TestTaskExecutionRanking {
 };
 
 int main() {
-    TestTaskExecutionRanking::test();
+    TestPointRanking::test();
     return UTILITY_TEST_FAILURES;
 }

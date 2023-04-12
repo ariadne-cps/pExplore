@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_task_ranking_constraint.cpp
+ *            test_ranking_constraint.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,7 +28,7 @@
 
 #include "utility/test.hpp"
 #include "utility/array.hpp"
-#include "task_ranking_constraint.hpp"
+#include "ranking_constraint.hpp"
 #include "task_runner_interface.hpp"
 
 using namespace pExplore;
@@ -52,12 +52,12 @@ template<> struct TaskOutput<R> {
 typedef TaskInput<R> I;
 typedef TaskOutput<R> O;
 
-class TestTaskRankingConstraint {
+class TestRankingConstraint {
   public:
 
     void test_scalar_ranking_parameter_creation() {
-        TaskRankingConstraint<R> c("chosen_step_size", RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE,
-                                   [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
+        RankingConstraint<R> c("chosen_step_size", RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE,
+                               [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
         auto cost = c.rank(input, output);
@@ -73,6 +73,6 @@ class TestTaskRankingConstraint {
 };
 
 int main() {
-    TestTaskRankingConstraint().test();
+    TestRankingConstraint().test();
     return UTILITY_TEST_FAILURES;
 }

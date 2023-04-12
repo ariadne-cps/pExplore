@@ -37,13 +37,13 @@
 #include "utility/string.hpp"
 #include "pronest/configuration_search_point.hpp"
 #include "task_interface.hpp"
-#include "task_ranking_constraint.hpp"
+#include "ranking_constraint.hpp"
 
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
 
-class TaskExecutionRanking;
+class PointRanking;
 
 //! \brief The base for parameter search tasks
 //! \details Useful to streamline task construction
@@ -53,17 +53,17 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
   protected:
-    ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _ranking_constraint(TaskRankingConstraint<R>()) {}
+    ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _ranking_constraint(RankingConstraint<R>()) {}
   public:
     String name() const override { return _name; }
-    TaskRankingConstraint<R> const& ranking_constraint() const override { return _ranking_constraint; }
-    void set_ranking_constraint(TaskRankingConstraint<R> const& constraint) override { _ranking_constraint = constraint; }
+    RankingConstraint<R> const& ranking_constraint() const override { return _ranking_constraint; }
+    void set_ranking_constraint(RankingConstraint<R> const& constraint) override { _ranking_constraint = constraint; }
 
-    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override { return _ranking_constraint.rank(data, input); }
+    Set<PointRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override { return _ranking_constraint.rank(data, input); }
 
   private:
     String const _name;
-    TaskRankingConstraint<R> _ranking_constraint;
+    RankingConstraint<R> _ranking_constraint;
 };
 
 } // namespace pExplore

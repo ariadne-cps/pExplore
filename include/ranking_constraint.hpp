@@ -1,5 +1,5 @@
 /***************************************************************************
- *            task_ranking_constraint.hpp
+ *            ranking_constraint.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -26,12 +26,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file task_ranking_constraint.hpp
+/*! \file ranking_constraint.hpp
  *  \brief Classes for handling a constraint for ranking the results of a task.
  */
 
-#ifndef PEXPLORE_TASK_RANKING_CONSTRAINT_HPP
-#define PEXPLORE_TASK_RANKING_CONSTRAINT_HPP
+#ifndef PEXPLORE_RANKING_CONSTRAINT_HPP
+#define PEXPLORE_RANKING_CONSTRAINT_HPP
 
 #include <functional>
 #include <chrono>
@@ -40,7 +40,7 @@
 #include "utility/writable.hpp"
 #include "utility/macros.hpp"
 #include "pronest/configuration_search_point.hpp"
-#include "task_execution_ranking.hpp"
+#include "point_ranking.hpp"
 
 namespace pExplore {
 
@@ -67,17 +67,17 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintSeverity sever
     return os;
 }
 
-template<class R> class TaskRankingConstraint : public WritableInterface {
+template<class R> class RankingConstraint : public WritableInterface {
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    TaskRankingConstraint(String const& name, RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+    RankingConstraint(String const& name, RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
             : _name(name), _criterion(criterion), _severity(severity), _func(func) { }
-    TaskRankingConstraint(RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : TaskRankingConstraint(std::string(), criterion, severity, func) { }
-    TaskRankingConstraint()
-            : TaskRankingConstraint(RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
+    RankingConstraint(RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+            : RankingConstraint(std::string(), criterion, severity, func) { }
+    RankingConstraint()
+            : RankingConstraint(RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
 
     String const& name() const { return _name; }
     RankingCriterion criterion() const { return _criterion; }
@@ -85,8 +85,8 @@ template<class R> class TaskRankingConstraint : public WritableInterface {
 
     double rank(InputType const& input, OutputType const& output) const { return _func(input, output); }
 
-    Set<TaskExecutionRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const {
-        Set<TaskExecutionRanking> result;
+    Set<PointRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const {
+        Set<PointRanking> result;
         for (auto entry : data) {
             result.insert({entry.first, rank(input,entry.second), _criterion});
         }
@@ -95,7 +95,7 @@ template<class R> class TaskRankingConstraint : public WritableInterface {
 
     ostream& _write(ostream& os) const override { return os << *this; }
 
-    friend ostream& operator<<(ostream& os, TaskRankingConstraint<R> const& p) {
+    friend ostream& operator<<(ostream& os, RankingConstraint<R> const& p) {
         os << "{'" << p.name() << "'," << p.criterion() << "," << p.severity() << "}"; return os; }
 
   private:
@@ -107,4 +107,4 @@ template<class R> class TaskRankingConstraint : public WritableInterface {
 
 } // namespace pExplore
 
-#endif // PEXPLORE_TASK_RANKING_CONSTRAINT_HPP
+#endif // PEXPLORE_RANKING_CONSTRAINT_HPP

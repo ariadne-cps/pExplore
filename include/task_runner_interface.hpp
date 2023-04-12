@@ -71,7 +71,7 @@ class TaskRunnable : public Configurable<C> {
     typedef Configuration<C> ConfigurationType;
   public:
     //! \brief Set the ranking cosntraint for this runnable, to rank results from multiple configurations
-    void set_ranking_constraint(TaskRankingConstraint<C> const& constraint);
+    void set_ranking_constraint(RankingConstraint<C> const& constraint);
   protected:
     TaskRunnable(ConfigurationType const& configuration);
     //! \brief Set a new runner, useful to override the default runner
