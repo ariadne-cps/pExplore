@@ -39,6 +39,7 @@
 #include "task_runner.hpp"
 #include "task_interface.hpp"
 #include "task_manager.hpp"
+#include "exploration.hpp"
 
 namespace pExplore {
 
@@ -186,9 +187,9 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
     }
 }
 
-template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, unsigned int concurrency)
+template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, unsigned int concurrency)
         : TaskRunnerBase<C>(configuration), _concurrency(concurrency),
-          _failures(0), _last_used_input(1),
+          _failures(0), _last_used_input(1), _points(), _exploration(exploration.clone()),
           _input_buffer(InputBufferType(concurrency)),_output_buffer(OutputBufferType(concurrency)),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
@@ -230,14 +231,7 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     auto rankings = this->_task.rank(outputs,input);
     CONCLOG_PRINTLN_VAR(rankings);
 
-    Set<ConfigurationSearchPoint> new_points;
-    size_t cnt = 0;
-    for (auto it = rankings.rbegin(); it != rankings.rend(); ++it) {
-        new_points.insert(it->point());
-        ++cnt;
-        if (cnt >= _concurrency/2) break;
-    }
-    new_points = make_extended_set_by_shifting(new_points, _concurrency);
+    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(rankings);
     for (auto p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 

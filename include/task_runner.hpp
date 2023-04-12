@@ -41,6 +41,7 @@
 #include "utility/container.hpp"
 #include "task_runner_interface.hpp"
 #include "task_execution_ranking.hpp"
+#include "exploration.hpp"
 
 namespace pExplore {
 
@@ -115,7 +116,7 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
     typedef Buffer<InputBufferContentType> InputBufferType;
     typedef Buffer<OutputBufferContentType> OutputBufferType;
   protected:
-    ParameterSearchRunner(ConfigurationType const& configuration, unsigned int concurrency);
+    ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, unsigned int concurrency);
   public:
     virtual ~ParameterSearchRunner();
 
@@ -129,6 +130,7 @@ private:
     std::atomic<unsigned int> _failures; // Number of failures after a given push, reset during pulling
     Buffer<InputType> _last_used_input;
     std::queue<ConfigurationSearchPoint> _points;
+    std::shared_ptr<ExplorationInterface> _exploration;
     // Synchronization
     List<shared_ptr<Thread>> _threads;
     InputBufferType _input_buffer;

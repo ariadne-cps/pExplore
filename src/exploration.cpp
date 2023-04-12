@@ -1,12 +1,12 @@
 /***************************************************************************
- *            task_execution_ranking.cpp
+ *            exploration.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- * This file is part of pExplore, under the MIT license.
+ * This file is part of ProNest, under the MIT license.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,40 +26,25 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/string.hpp"
-#include "task_execution_ranking.hpp"
+#include "exploration.hpp"
 
 namespace pExplore {
 
-using Utility::to_string;
-
-TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion)
-           : _point(p), _score(s), _criterion(criterion) { }
-
-ConfigurationSearchPoint const& TaskExecutionRanking::point() const {
-    return _point;
-}
-
-double TaskExecutionRanking::score() const {
-    return _score;
-}
-
-bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
-    UTILITY_PRECONDITION(_criterion == s._criterion)
-    if (_score == s._score)
-        return _point < s._point;
-
-    switch (_criterion) {
-        case RankingCriterion::MAXIMISE :
-            return _score < s._score;
-        case RankingCriterion::MINIMISE_POSITIVE :
-            return ((_score >= 0 and s._score >= 0) ? _score > s._score : _score < s._score);
-        default :
-            UTILITY_FAIL_MSG("Unhandled RankingCriterion value.")
+Set<ConfigurationSearchPoint> ShiftAndKeepBestHalfExploration::next_points_from(Set<TaskExecutionRanking> const& rankings) const {
+    Set<ConfigurationSearchPoint> result;
+    size_t cnt = 0;
+    for (auto it = rankings.rbegin(); it != rankings.rend(); ++it) {
+        result.insert(it->point());
+        ++cnt;
+        if (cnt >= rankings.size()/2) break;
     }
+    result = make_extended_set_by_shifting(result, rankings.size());
+
+    return result;
 }
 
-ostream& TaskExecutionRanking::_write(ostream& os) const {
-    return os << "{" << _point << ":" << _score << "}";
+ExplorationInterface* ShiftAndKeepBestHalfExploration::clone() const {
+    return new ShiftAndKeepBestHalfExploration();
 }
+
 } // namespace pExplore

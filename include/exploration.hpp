@@ -1,12 +1,12 @@
 /***************************************************************************
- *            task_execution_ranking.cpp
+ *            exploration.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
  ****************************************************************************/
 
 /*
- * This file is part of pExplore, under the MIT license.
+ * This file is part of ProNest, under the MIT license.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,40 +26,38 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/string.hpp"
+/*! \file exploration.hpp
+ *  \brief Class for strategies to explore search points across iterations.
+ */
+
+#ifndef PEXPLORE_EXPLORATION_HPP
+#define PEXPLORE_EXPLORATION_HPP
+
+#include "pronest/configuration_search_point.hpp"
+#include "utility/container.hpp"
 #include "task_execution_ranking.hpp"
 
 namespace pExplore {
 
-using Utility::to_string;
+using Utility::Set;
 
-TaskExecutionRanking::TaskExecutionRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion)
-           : _point(p), _score(s), _criterion(criterion) { }
+//! \brief Interface for search strategies
+class ExplorationInterface {
+  public:
+    //! \brief Make the next points from set of points from \a rankings, preserving the size
+    virtual Set<ConfigurationSearchPoint> next_points_from(Set<TaskExecutionRanking> const& rankings) const = 0;
 
-ConfigurationSearchPoint const& TaskExecutionRanking::point() const {
-    return _point;
-}
+    virtual ExplorationInterface* clone() const = 0;
+    virtual ~ExplorationInterface() = default;
+};
 
-double TaskExecutionRanking::score() const {
-    return _score;
-}
+//! \brief Keeps the best half points, to which we add the shifted points from each (with a distance 1 if possible)
+class ShiftAndKeepBestHalfExploration : public ExplorationInterface {
+  public:
+    Set<ConfigurationSearchPoint> next_points_from(Set<TaskExecutionRanking> const& rankings) const override;
+    ExplorationInterface* clone() const override;
+};
 
-bool TaskExecutionRanking::operator<(TaskExecutionRanking const& s) const {
-    UTILITY_PRECONDITION(_criterion == s._criterion)
-    if (_score == s._score)
-        return _point < s._point;
-
-    switch (_criterion) {
-        case RankingCriterion::MAXIMISE :
-            return _score < s._score;
-        case RankingCriterion::MINIMISE_POSITIVE :
-            return ((_score >= 0 and s._score >= 0) ? _score > s._score : _score < s._score);
-        default :
-            UTILITY_FAIL_MSG("Unhandled RankingCriterion value.")
-    }
-}
-
-ostream& TaskExecutionRanking::_write(ostream& os) const {
-    return os << "{" << _point << ":" << _score << "}";
-}
 } // namespace pExplore
+
+#endif // PEXPLORE_EXPLORATION_HPP

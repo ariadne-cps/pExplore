@@ -34,7 +34,7 @@ namespace pExplore {
 
 using std::make_pair;
 
-TaskManager::TaskManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1) {}
+TaskManager::TaskManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1), _exploration(new ShiftAndKeepBestHalfExploration()) {}
 
 unsigned int TaskManager::maximum_concurrency() const {
     return _maximum_concurrency;
@@ -48,6 +48,10 @@ void TaskManager::set_concurrency(unsigned int value) {
     UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0);
     std::lock_guard<std::mutex> lock(_data_mutex);
     _concurrency = value;
+}
+
+void TaskManager::set_exploration(ExplorationInterface const& exploration) {
+    _exploration.reset(exploration.clone());
 }
 
 List<TaskExecutionRanking> TaskManager::best_rankings() const {
