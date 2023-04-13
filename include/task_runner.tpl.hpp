@@ -177,10 +177,9 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
     while(true) {
         std::unique_lock<std::mutex> locker(_input_mutex);
         _input_availability.wait(locker, [this]() { return _input_buffer.size()>0 || _terminate; });
-        locker.unlock();
         if (_terminate) break;
-        if (_input_buffer.size() == 0) std::cout << "Input buffer is empty." << std::endl;
         auto pkg = _input_buffer.pull();
+        locker.unlock();
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
             auto output = this->_task.run(pkg.first,cfg);
