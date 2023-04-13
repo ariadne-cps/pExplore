@@ -84,11 +84,13 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
   protected:
 
     void _check_critical_constraints(InputType const& input, OutputType const& output) const {
-        for (auto const& c : this->_task.constraint_set().constraints()) {
-            if (c.severity() == ConstraintSeverity::CRITICAL) {
-                auto robustness = c.robustness(input, output);
-                if ((this->_task.constraint_set().criterion() == RankingCriterion::MAXIMISE and robustness < 0) or (this->_task.constraint_set().criterion() == RankingCriterion::MINIMISE_POSITIVE and robustness > 0)) {
-                    throw CriticalRankingFailureException<C>(robustness);
+        if (this->_task.constraint_set().has_critical_constraints()) {
+            for (auto const& c : this->_task.constraint_set().constraints()) {
+                if (c.severity() == ConstraintSeverity::CRITICAL) {
+                    auto robustness = c.robustness(input, output);
+                    if ((this->_task.constraint_set().criterion() == RankingCriterion::MAXIMISE and robustness < 0) or (this->_task.constraint_set().criterion() == RankingCriterion::MINIMISE_POSITIVE and robustness > 0)) {
+                        throw CriticalRankingFailureException<C>(robustness);
+                    }
                 }
             }
         }

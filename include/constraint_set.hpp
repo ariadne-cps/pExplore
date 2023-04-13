@@ -51,9 +51,16 @@ public:
     typedef TaskOutput<R> OutputType;
 
     ConstraintSet(List<Constraint<R>> const& constraints, RankingCriterion const& criterion) :
-        _constraints(constraints), _criterion(criterion) { }
-    ConstraintSet() :
-            _constraints(List<Constraint<R>>()), _criterion(RankingCriterion::MAXIMISE) { }
+        _constraints(constraints), _criterion(criterion), _has_critical_constraints(false) {
+        for (auto const& c : constraints) {
+            if (c.severity() == ConstraintSeverity::CRITICAL) {
+                _has_critical_constraints = true;
+                break;
+            }
+        }
+    }
+
+    ConstraintSet() : _constraints(List<Constraint<R>>()), _criterion(RankingCriterion::MAXIMISE), _has_critical_constraints(false) { }
 
     PointRanking robustness(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
         double rob = std::numeric_limits<double>::max();
@@ -61,6 +68,10 @@ public:
             rob = min(rob, c.robustness(input, output));
         }
         return {point, rob, _criterion};
+    }
+
+    bool has_critical_constraints() const {
+        return _has_critical_constraints;
     }
 
     List<Constraint<R>> const& constraints() const { return _constraints; }
@@ -72,9 +83,10 @@ public:
         return os;
     }
 
-private:
+  private:
     List<Constraint<R>> _constraints;
     RankingCriterion _criterion;
+    bool _has_critical_constraints;
 };
 
 } // namespace pExplore
