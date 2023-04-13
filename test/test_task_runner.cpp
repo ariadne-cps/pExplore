@@ -193,8 +193,8 @@ class TestTaskRunner {
         using I = TaskInput<A>;
         using O = TaskOutput<A>;
         double offset = 8.0;
-        auto constraint = RankingConstraint<A>(RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
-        a.set_ranking_constraint(constraint);
+        auto constraint = Constraint<A>(ConstraintSeverity::PERMISSIVE, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
+        a.set_constraint_set({{constraint},RankingCriterion::MINIMISE_POSITIVE});
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)

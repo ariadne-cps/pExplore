@@ -57,17 +57,12 @@ inline std::ostream& operator<<(std::ostream& os, const RankingCriterion opt) {
     return os;
 }
 
-template<class R> class CriticalRankingFailureException : public std::runtime_error {
-public:
-    CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
-};
-
 class PointRanking : public WritableInterface {
 public:
     PointRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion);
     ConfigurationSearchPoint const& point() const;
     double score() const;
-    //! \brief Ordering is based on score
+    //! \brief Ordering is based on the criterion
     bool operator<(PointRanking const& s) const;
 
     virtual ostream& _write(ostream& os) const;

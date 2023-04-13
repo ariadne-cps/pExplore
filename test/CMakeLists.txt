@@ -2,7 +2,7 @@ include(CTest)
 
 set(UNIT_TESTS
     test_task_manager
-    test_ranking_constraint
+    test_constraint
     test_point_ranking
     test_task_runner
 )

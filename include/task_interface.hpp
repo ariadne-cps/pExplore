@@ -45,11 +45,12 @@ using Utility::String;
 using Utility::Set;
 using Utility::Pair;
 using Utility::Map;
+using Utility::List;
 using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 
 class PointRanking;
-template<class R> class RankingConstraint;
+template<class R> class ConstraintSet;
 
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
@@ -64,14 +65,16 @@ class TaskInterface {
 
     //! \brief The name of the task, to be used for thread naming
     virtual String name() const = 0;
-    //! \brief Return the ranking constraint for the task
-    virtual RankingConstraint<R> const& ranking_constraint() const = 0;
-    //! \brief Set the ranking constraint for the task
-    virtual void set_ranking_constraint(RankingConstraint<R> const& constraint) = 0;
+    //! \brief Return the constraint set for the task
+    virtual ConstraintSet<R> const& constraint_set() const = 0;
+    //! \brief Set the constraint set for the task
+    virtual void set_constraint_set(ConstraintSet<R> const& constraint_set) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
-    //! \brief Evaluate the costs of points from output and execution time, possibly using the input \a in
+    //! \brief Rank, using the constraints, the cost of points from output and execution time, possibly using the input \a in
+    //! \details While the robustness of a given point is the minimum over the robustness of all constraints, the actual cost ordering on the set
+    //! instead depends on the RankingCriterion
     virtual Set<PointRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 

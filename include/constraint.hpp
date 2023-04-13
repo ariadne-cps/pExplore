@@ -1,5 +1,5 @@
 /***************************************************************************
- *            ranking_constraint.hpp
+ *            constraint.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -26,12 +26,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file ranking_constraint.hpp
+/*! \file constraint.hpp
  *  \brief Classes for handling a constraint for ranking the results of a task.
  */
 
-#ifndef PEXPLORE_RANKING_CONSTRAINT_HPP
-#define PEXPLORE_RANKING_CONSTRAINT_HPP
+#ifndef PEXPLORE_CONSTRAINT_HPP
+#define PEXPLORE_CONSTRAINT_HPP
 
 #include <functional>
 #include <chrono>
@@ -67,44 +67,42 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintSeverity sever
     return os;
 }
 
-template<class R> class RankingConstraint : public WritableInterface {
+template<class R> class CriticalRankingFailureException : public std::runtime_error {
+public:
+    CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
+};
+
+//! \brief A constraint in the input \a in and output \a out objects of the task
+//! \details The constraint is expressed as f(in,out) > 0
+template<class R> class Constraint : public WritableInterface {
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    RankingConstraint(String const& name, RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : _name(name), _criterion(criterion), _severity(severity), _func(func) { }
-    RankingConstraint(RankingCriterion const& criterion, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : RankingConstraint(std::string(), criterion, severity, func) { }
-    RankingConstraint()
-            : RankingConstraint(RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
+    Constraint(String const& name, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+            : _name(name), _severity(severity), _func(func) { }
+    Constraint(ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
+            : Constraint(std::string(), severity, func) { }
+    Constraint()
+            : Constraint(ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
 
     String const& name() const { return _name; }
-    RankingCriterion criterion() const { return _criterion; }
     ConstraintSeverity severity() const { return _severity; }
 
-    double rank(InputType const& input, OutputType const& output) const { return _func(input, output); }
-
-    Set<PointRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const {
-        Set<PointRanking> result;
-        for (auto entry : data) {
-            result.insert({entry.first, rank(input,entry.second), _criterion});
-        }
-        return result;
-    }
+    //! \brief Get the robustness (i.e., the degree of satisfaction of the constraint) given an \a input and \a output
+    double robustness(InputType const& input, OutputType const& output) const { return _func(input, output); }
 
     ostream& _write(ostream& os) const override { return os << *this; }
 
-    friend ostream& operator<<(ostream& os, RankingConstraint<R> const& p) {
-        os << "{'" << p.name() << "'," << p.criterion() << "," << p.severity() << "}"; return os; }
+    friend ostream& operator<<(ostream& os, Constraint<R> const& p) {
+        os << "{'" << p.name() << "," << p.severity() << "}"; return os; }
 
   private:
     String _name;
-    RankingCriterion _criterion;
     ConstraintSeverity _severity;
     std::function<double(InputType const&, OutputType const&)> _func;
 };
 
 } // namespace pExplore
 
-#endif // PEXPLORE_RANKING_CONSTRAINT_HPP
+#endif // PEXPLORE_CONSTRAINT_HPP

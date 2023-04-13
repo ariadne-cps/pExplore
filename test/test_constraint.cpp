@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_ranking_constraint.cpp
+ *            test_constraint.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,7 +28,7 @@
 
 #include "utility/test.hpp"
 #include "utility/array.hpp"
-#include "ranking_constraint.hpp"
+#include "constraint.hpp"
 #include "task_runner_interface.hpp"
 
 using namespace pExplore;
@@ -52,27 +52,26 @@ template<> struct TaskOutput<R> {
 typedef TaskInput<R> I;
 typedef TaskOutput<R> O;
 
-class TestRankingConstraint {
+class TestConstraint {
   public:
 
-    void test_scalar_ranking_parameter_creation() {
-        RankingConstraint<R> c("chosen_step_size", RankingCriterion::MAXIMISE, ConstraintSeverity::PERMISSIVE,
-                               [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
+    void test_constraint_creation() {
+        Constraint<R> c("chosen_step_size", ConstraintSeverity::PERMISSIVE,
+                        [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto cost = c.rank(input, output);
+        auto rob = c.robustness(input, output);
         UTILITY_TEST_PRINT(c);
-        UTILITY_TEST_EQUALS(cost,9);
-        UTILITY_TEST_EQUALS(c.criterion(), RankingCriterion::MAXIMISE);
+        UTILITY_TEST_EQUALS(rob,9);
         UTILITY_TEST_EQUALS(c.severity(), ConstraintSeverity::PERMISSIVE);
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_scalar_ranking_parameter_creation())
+        UTILITY_TEST_CALL(test_constraint_creation())
     }
 };
 
 int main() {
-    TestRankingConstraint().test();
+    TestConstraint().test();
     return UTILITY_TEST_FAILURES;
 }
