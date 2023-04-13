@@ -164,9 +164,12 @@ public:
 };
 
 class TestTaskRunner {
-  public:
+    using I = TaskInput<A>;
+    using O = TaskOutput<A>;
 
-    void test_run() {
+  private:
+
+    A _get_runnable() {
 
         BetterThreads::ThreadManager::instance();
 
@@ -188,10 +191,14 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(maximum_concurrency)
         TaskManager::instance().set_concurrency(maximum_concurrency);
 
-        A a(ca);
+        return A(ca);
+    }
 
-        using I = TaskInput<A>;
-        using O = TaskOutput<A>;
+  public:
+
+    void test_success() {
+
+        auto a = _get_runnable();
         double offset = 8.0;
         auto constraint = Constraint<A>(ConstraintSeverity::PERMISSIVE, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
         a.set_constraint_set({{constraint},RankingCriterion::MINIMISE_POSITIVE});
@@ -200,8 +207,19 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(result)
     }
 
+    void test_failure() {
+
+        auto a = _get_runnable();
+        double offset = 12.0;
+        auto constraint = Constraint<A>(ConstraintSeverity::CRITICAL, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
+        a.set_constraint_set({{constraint},RankingCriterion::MINIMISE_POSITIVE});
+
+        UTILITY_TEST_FAIL(a.execute())
+    }
+
     void test() {
-        UTILITY_TEST_CALL(test_run());
+        UTILITY_TEST_CALL(test_success())
+        UTILITY_TEST_CALL(test_failure())
     }
 };
 
