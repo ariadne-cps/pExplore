@@ -1,5 +1,5 @@
 /***************************************************************************
- *            constraint_set.hpp
+ *            constraining_specification.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -26,12 +26,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file constraint_set.hpp
- *  \brief Class for defining a set of constraints, whose state will change over time.
+/*! \file constrain.hpp
+ *  \brief Class for defining a time-varying constraining specification and a control strategy to enforce it.
  */
 
-#ifndef PEXPLORE_CONSTRAINT_SET
-#define PEXPLORE_CONSTRAINT_SET
+#ifndef PEXPLORE_CONSTRAINING_SPECIFICATION
+#define PEXPLORE_CONSTRAINING_SPECIFICATION
 
 #include "utility/container.hpp"
 #include "utility/writable.hpp"
@@ -45,20 +45,20 @@ using std::to_string;
 using std::ostream;
 using std::min;
 
-template<class R> class ConstraintSet : public WritableInterface {
+template<class R> class ConstrainingSpecification : public WritableInterface {
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    ConstraintSet(List<Constraint<R>> const& constraints) : _constraint_states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
+    ConstrainingSpecification(List<Constraint<R>> const& constraints) : _constraint_states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
         for (auto const& c : constraints) {
             _constraint_states.push_back(c);
         }
     }
 
-    ConstraintSet() : ConstraintSet(List<Constraint<R>>()) { }
+    ConstrainingSpecification() : ConstrainingSpecification(List<Constraint<R>>()) { }
 
-    PointEvaluation evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
+    PointConstraintEvaluation evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
         return {point, evaluate(input,output)};
     }
 
@@ -165,4 +165,4 @@ template<class R> struct NoActiveConstraintsException : public std::runtime_erro
 
 } // namespace pExplore
 
-#endif // PEXPLORE_CONSTRAINT_SET
+#endif // PEXPLORE_CONSTRAINING_SPECIFICATION

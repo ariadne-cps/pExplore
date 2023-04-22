@@ -72,16 +72,16 @@ class ConstraintEvaluation : public WritableInterface {
     double _objective;
 };
 
-//! \brief The point-evaluation couple
-class PointEvaluation : public WritableInterface {
+//! \brief The point + contraint evaluation couple
+class PointConstraintEvaluation : public WritableInterface {
   public:
-    PointEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation);
+    PointConstraintEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation);
 
     ConfigurationSearchPoint const& point() const;
     ConstraintEvaluation const& evaluation() const;
 
     //! \brief Ordering uses the evaluation
-    bool operator<(PointEvaluation const& s) const;
+    bool operator<(PointConstraintEvaluation const& s) const;
 
     virtual ostream& _write(ostream& os) const;
   private:

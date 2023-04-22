@@ -53,7 +53,7 @@ template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterfac
     this->_runner = runner;
 }
 
-template<class C> void TaskRunnable<C>::set_constraint_set(ConstraintSet<C> const& constraint_set) {
+template<class C> void TaskRunnable<C>::set_constraint_set(ConstrainingSpecification<C> const& constraint_set) {
     _runner->task().set_constraint_set(constraint_set);
 }
 

@@ -37,7 +37,7 @@
 #include "utility/string.hpp"
 #include "pronest/configuration_search_point.hpp"
 #include "task_interface.hpp"
-#include "constraint_set.hpp"
+#include "constraining_specification.hpp"
 
 namespace pExplore {
 
@@ -45,7 +45,7 @@ using ProNest::ConfigurationSearchPoint;
 using Utility::List;
 using Utility::Set;
 
-class PointEvaluation;
+class PointConstraintEvaluation;
 
 //! \brief The base for parameter search tasks
 //! \details Useful to streamline task construction
@@ -58,12 +58,12 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _constraint_set() {}
   public:
     String name() const override { return _name; }
-    ConstraintSet<R> const& constraint_set() const override { return _constraint_set; }
-    void set_constraint_set(ConstraintSet<R> const& constraint_set) override { _constraint_set = constraint_set; }
+    ConstrainingSpecification<R> const& constraint_set() const override { return _constraint_set; }
+    void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
     void update_constraint_set(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input,output); }
 
-    Set<PointEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override {
-        Set<PointEvaluation> result;
+    Set<PointConstraintEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override {
+        Set<PointConstraintEvaluation> result;
         for (auto const& entry : data) {
             result.insert(_constraint_set.evaluate(entry.first,input,entry.second));
         }
@@ -72,7 +72,7 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
 
   private:
     String const _name;
-    ConstraintSet<R> _constraint_set;
+    ConstrainingSpecification<R> _constraint_set;
 };
 
 } // namespace pExplore

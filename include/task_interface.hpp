@@ -49,8 +49,8 @@ using Utility::List;
 using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 
-class PointEvaluation;
-template<class R> class ConstraintSet;
+class PointConstraintEvaluation;
+template<class R> class ConstrainingSpecification;
 
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
@@ -66,16 +66,16 @@ class TaskInterface {
     //! \brief The name of the task, to be used for thread naming
     virtual String name() const = 0;
     //! \brief Return the constraint set for the task
-    virtual ConstraintSet<R> const& constraint_set() const = 0;
+    virtual ConstrainingSpecification<R> const& constraint_set() const = 0;
     //! \brief Set the constraint set for the task
-    virtual void set_constraint_set(ConstraintSet<R> const& constraint_set) = 0;
+    virtual void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) = 0;
     //! \brief Update the constraint set given the \a input and \a output
     virtual void update_constraint_set(InputType const& input, OutputType const& output) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
     //! \brief Evaluate, using the constraints, all the point-output pairs in \a data, possibly using the input \a in
-    virtual Set<PointEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
+    virtual Set<PointConstraintEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 
 } // namespace pExplore

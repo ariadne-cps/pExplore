@@ -73,23 +73,23 @@ ostream& ConstraintEvaluation::_write(ostream& os) const {
     return os << "{ hard_failures " << hard_failures() << ", soft_failures " << soft_failures() << ", objective " << objective() << "}";
 }
 
-PointEvaluation::PointEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation)
+PointConstraintEvaluation::PointConstraintEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation)
            : _point(p), _evaluation(evaluation) { }
 
-ConfigurationSearchPoint const& PointEvaluation::point() const {
+ConfigurationSearchPoint const& PointConstraintEvaluation::point() const {
     return _point;
 }
 
-ConstraintEvaluation const& PointEvaluation::evaluation() const {
+ConstraintEvaluation const& PointConstraintEvaluation::evaluation() const {
     return _evaluation;
 }
 
-bool PointEvaluation::operator<(PointEvaluation const& e) const {
+bool PointConstraintEvaluation::operator<(PointConstraintEvaluation const& e) const {
     if (_evaluation == e.evaluation()) return _point < e._point;
     return _evaluation < e.evaluation();
 }
 
-ostream& PointEvaluation::_write(ostream& os) const {
+ostream& PointConstraintEvaluation::_write(ostream& os) const {
     return os << "{" << _point << ": " << _evaluation << "}";
 }
 } // namespace pExplore
