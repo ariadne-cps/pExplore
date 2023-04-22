@@ -200,8 +200,8 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         double offset = 8.0;
-        auto constraint = Constraint<A>(ConstraintSeverity::PERMISSIVE, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
-        a.set_constraint_set({{constraint},RankingCriterion::MINIMISE_POSITIVE});
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
+        a.set_constraint_set({constraint});
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)
@@ -211,8 +211,8 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         double offset = 12.0;
-        auto constraint = Constraint<A>(ConstraintSeverity::CRITICAL, [offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); });
-        a.set_constraint_set({{constraint},RankingCriterion::MINIMISE_POSITIVE});
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; }).set_failure_kind(ConstraintFailureKind::HARD).build();
+        a.set_constraint_set({constraint});
 
         UTILITY_TEST_FAIL(a.execute())
     }

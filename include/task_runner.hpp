@@ -40,7 +40,7 @@
 #include "pronest/configuration_property.tpl.hpp"
 #include "utility/container.hpp"
 #include "task_runner_interface.hpp"
-#include "point_ranking.hpp"
+#include "evaluation.hpp"
 #include "exploration.hpp"
 
 namespace pExplore {
@@ -127,7 +127,7 @@ private:
     void _loop();
 private:
     unsigned int const _concurrency; // Number of threads to be used
-    std::atomic<unsigned int> _failures; // Number of failures after a given push, reset during pulling
+    std::atomic<unsigned int> _failures; // Number of task failures after a given push, reset during pulling
     Buffer<InputType> _last_used_input;
     std::queue<ConfigurationSearchPoint> _points;
     std::shared_ptr<ExplorationInterface> _exploration;

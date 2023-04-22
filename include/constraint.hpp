@@ -27,7 +27,7 @@
  */
 
 /*! \file constraint.hpp
- *  \brief Classes for handling a constraint for ranking the results of a task.
+ *  \brief Classes for handling a generic constraint
  */
 
 #ifndef PEXPLORE_CONSTRAINT_HPP
@@ -40,7 +40,7 @@
 #include "utility/writable.hpp"
 #include "utility/macros.hpp"
 #include "pronest/configuration_search_point.hpp"
-#include "point_ranking.hpp"
+#include "evaluation.hpp"
 
 namespace pExplore {
 
@@ -54,15 +54,45 @@ using std::ostream;
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
 
-//! \brief Enumeration for the severity of satisfying a constraint
-//! \details PERMISSIVE: satisfying the constraint is only desired
-//!          CRITICAL: satisfying the constraint is mandatory
-enum class ConstraintSeverity { PERMISSIVE, CRITICAL };
-inline std::ostream& operator<<(std::ostream& os, const ConstraintSeverity severity) {
-    switch (severity) {
-        case ConstraintSeverity::PERMISSIVE: os << "PERMISSIVE"; break;
-        case ConstraintSeverity::CRITICAL: os << "CRITICAL"; break;
-        default: UTILITY_FAIL_MSG("Unhandled ConstraintSeverity value.");
+//! \brief Enumeration for the action with respect to success in evaluation of the constraint
+//! \details NONE: no action performed
+//!          DEACTIVATE: the constraint is deactivated from a set
+enum class ConstraintSuccessAction { NONE, DEACTIVATE };
+inline std::ostream& operator<<(std::ostream& os, const ConstraintSuccessAction success_action) {
+    switch (success_action) {
+        case ConstraintSuccessAction::NONE: os << "NONE"; break;
+        case ConstraintSuccessAction::DEACTIVATE: os << "DEACTIVATE"; break;
+        default: UTILITY_FAIL_MSG("Unhandled ConstraintSuccessAction value.");
+    }
+    return os;
+}
+
+//! \brief Enumeration for the kind of failure in the evaluation of the constraint
+//! \details NONE: no requirement on the sign of the constraint evaluation
+//!          SOFT: satisfying the constraint is desired
+//!          HARD: satisfying the constraint is mandatory, if all points fail then the constraint has failed
+enum class ConstraintFailureKind { NONE, SOFT, HARD };
+inline std::ostream& operator<<(std::ostream& os, const ConstraintFailureKind failure_kind) {
+    switch (failure_kind) {
+        case ConstraintFailureKind::NONE: os << "NONE"; break;
+        case ConstraintFailureKind::SOFT: os << "SOFT"; break;
+        case ConstraintFailureKind::HARD: os << "HARD"; break;
+        default: UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind value.");
+    }
+    return os;
+}
+
+//! \brief Enumeration for the impact of the evaluation of the constraint on the objective function
+//! \details NONE: no impact
+//!          SIGNED: the sign of the evaluation is considered
+//!          UNSIGNED: the absolute value of the evaluation is considered
+enum class ConstraintObjectiveImpact { NONE, SIGNED, UNSIGNED };
+inline std::ostream& operator<<(std::ostream& os, const ConstraintObjectiveImpact objective_impact) {
+    switch (objective_impact) {
+        case ConstraintObjectiveImpact::NONE: os << "NONE"; break;
+        case ConstraintObjectiveImpact::SIGNED: os << "SIGNED"; break;
+        case ConstraintObjectiveImpact::UNSIGNED: os << "UNSIGNED"; break;
+        default: UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact value.");
     }
     return os;
 }
@@ -72,35 +102,95 @@ public:
     CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
 };
 
+template<class R> class ConstraintBuilder;
+
 //! \brief A constraint in the input \a in and output \a out objects of the task
 //! \details The constraint is expressed as f(in,out) > 0
 template<class R> class Constraint : public WritableInterface {
+    friend class ConstraintBuilder<R>;
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    Constraint(String const& name, ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : _name(name), _severity(severity), _func(func) { }
-    Constraint(ConstraintSeverity const& severity, std::function<double(InputType const&, OutputType const&)> func)
-            : Constraint(std::string(), severity, func) { }
-    Constraint()
-            : Constraint(ConstraintSeverity::PERMISSIVE, [](InputType const&, OutputType const&){ return 0.0; }) { }
+  protected:
+    Constraint(String const& name, size_t const& group_id, ConstraintSuccessAction const& success_action, ConstraintFailureKind const& failure_kind, ConstraintObjectiveImpact const& objective_impact, std::function<double(InputType const&, OutputType const&)> func)
+            : _name(name), _group_id(group_id), _success_action(success_action), _failure_kind(failure_kind), _objective_impact(objective_impact), _func(func) { }
 
+  public:
     String const& name() const { return _name; }
-    ConstraintSeverity severity() const { return _severity; }
+    size_t const& group_id() const { return _group_id; }
+    ConstraintSuccessAction success_action() const { return _success_action; }
+    ConstraintFailureKind failure_kind() const { return _failure_kind; }
+    ConstraintObjectiveImpact objective_impact() const { return _objective_impact; }
 
-    //! \brief Get the robustness (i.e., the degree of satisfaction of the constraint) given an \a input and \a output
+    //! \brief Get the degree of satisfaction of the constraint given an \a input and \a output
     double robustness(InputType const& input, OutputType const& output) const { return _func(input, output); }
 
-    ostream& _write(ostream& os) const override { return os << *this; }
-
-    friend ostream& operator<<(ostream& os, Constraint<R> const& p) {
-        os << "{'" << p.name() << "," << p.severity() << "}"; return os; }
+    ostream& _write(ostream& os) const override {
+        return os << "{'" << _name << "', group_id=" << _group_id << ", success_action=" << _success_action << ", failure_kind=" << _failure_kind << ", objective_impact=" << _objective_impact << "}";
+    }
 
   private:
     String _name;
-    ConstraintSeverity _severity;
+    size_t _group_id;
+    ConstraintSuccessAction _success_action;
+    ConstraintFailureKind _failure_kind;
+    ConstraintObjectiveImpact _objective_impact;
     std::function<double(InputType const&, OutputType const&)> _func;
+};
+
+//! \brief A builder for Constraint, to account for the various optional arguments
+template<class R> class ConstraintBuilder {
+  public:
+    typedef TaskInput<R> InputType;
+    typedef TaskOutput<R> OutputType;
+
+    ConstraintBuilder(std::function<double(InputType const&, OutputType const&)> func) :
+        _name(std::string()), _group_id(0), _success_action(ConstraintSuccessAction::NONE), _failure_kind(ConstraintFailureKind::NONE), _objective_impact(ConstraintObjectiveImpact::NONE), _func(func) { }
+
+    ConstraintBuilder& set_name(String name) { _name = name; return *this; }
+    ConstraintBuilder& set_group_id(size_t group_id) { _group_id = group_id; return *this; }
+    ConstraintBuilder& set_success_action(ConstraintSuccessAction const& success_action) { _success_action = success_action; return *this; }
+    ConstraintBuilder& set_failure_kind(ConstraintFailureKind const& failure_kind) { _failure_kind = failure_kind; return *this; }
+    ConstraintBuilder& set_objective_impact(ConstraintObjectiveImpact const& objective_impact) { _objective_impact = objective_impact; return *this; }
+
+    Constraint<R> build() const { return {_name,_group_id,_success_action,_failure_kind,_objective_impact,_func}; }
+
+  private:
+    String _name;
+    size_t _group_id;
+    ConstraintSuccessAction _success_action;
+    ConstraintFailureKind _failure_kind;
+    ConstraintObjectiveImpact _objective_impact;
+    std::function<double(InputType const&, OutputType const&)> const _func;
+};
+
+//! \brief The state of a constraint as it is processed
+template<class R> class ConstraintState : public WritableInterface {
+  public:
+    ConstraintState(Constraint<R> const& constraint) : _constraint(constraint), _active(true), _success(false), _failure(false) { }
+
+    bool is_active() const { return _active; }
+    bool has_succeeded() const { return _success; }
+    bool has_failed() const { return _failure; }
+    Constraint<R> const& constraint() const { return _constraint; }
+
+    //! \brief Set the constraint as inactive
+    //! \details Constraints with the same group_id as others may be deactivated as a result of success/failure on those,
+    //! even if this one has no failure or success
+    void deactivate() { _active = false; }
+    void set_success() { UTILITY_PRECONDITION(not _failure) _success = true; }
+    void set_failure() { UTILITY_PRECONDITION(not _success) _failure = true; }
+
+    ostream& _write(ostream& os) const override {
+        return os << "{'" << _constraint << ", active = " << _active << ", has_succeeded =" << _success << ", has_failed=" << _failure << "}";
+    }
+
+  private:
+    Constraint<R> _constraint;
+    bool _active;
+    bool _success;
+    bool _failure;
 };
 
 } // namespace pExplore

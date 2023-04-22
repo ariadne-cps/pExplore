@@ -83,21 +83,6 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
 
   protected:
 
-    void _check_critical_constraints(InputType const& input, OutputType const& output) const {
-        if (this->_task.constraint_set().has_critical_constraints()) {
-            for (auto const& c : this->_task.constraint_set().constraints()) {
-                if (c.severity() == ConstraintSeverity::CRITICAL) {
-                    auto robustness = c.robustness(input, output);
-                    if ((this->_task.constraint_set().criterion() == RankingCriterion::MAXIMISE and robustness < 0) or (this->_task.constraint_set().criterion() == RankingCriterion::MINIMISE_POSITIVE and robustness > 0)) {
-                        throw CriticalRankingFailureException<C>(robustness);
-                    }
-                }
-            }
-        }
-    }
-
-  protected:
-
     TaskType _task;
     ConfigurationType const _configuration;
 };
@@ -107,7 +92,10 @@ template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const&
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
     OutputType result = this->_task.run(input,this->configuration());
 
-    this->_check_critical_constraints(input,result);
+    this->_task.update_constraint_set(input,result);
+
+    if (this->_task.constraint_set().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
 
     _last_output.reset(new OutputType(result));
 }
@@ -153,7 +141,12 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     std::unique_lock<std::mutex> locker(_output_mutex);
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
-    this->_check_critical_constraints(_last_used_input,result);
+
+    this->_task.update_constraint_set(_last_used_input,result);
+
+    if (this->_task.constraint_set().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
+
     return result;
 }
 
@@ -233,16 +226,19 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
         auto io_data = _output_buffer.pull();
         outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(io_data.point(),io_data.output()));
     }
-    auto rankings = this->_task.rank(outputs,input);
-    CONCLOG_PRINTLN_VAR(rankings);
+    auto evaluations = this->_task.evaluate(outputs,input);
+    CONCLOG_PRINTLN_VAR(evaluations);
 
-    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(rankings);
+    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(evaluations);
     for (auto p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
-    auto best = *rankings.rbegin();
+    auto best = *evaluations.begin();
 
-    this->_check_critical_constraints(input,outputs.at(best.point()));
+    this->_task.update_constraint_set(input,outputs.at(best.point()));
+
+    if (this->_task.constraint_set().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
 
     TaskManager::instance().append_best_ranking(best);
 

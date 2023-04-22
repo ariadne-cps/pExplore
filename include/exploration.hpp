@@ -35,7 +35,7 @@
 
 #include "pronest/configuration_search_point.hpp"
 #include "utility/container.hpp"
-#include "point_ranking.hpp"
+#include "evaluation.hpp"
 
 namespace pExplore {
 
@@ -45,7 +45,7 @@ using Utility::Set;
 class ExplorationInterface {
   public:
     //! \brief Make the next points from set of points from \a rankings, preserving the size
-    virtual Set<ConfigurationSearchPoint> next_points_from(Set<PointRanking> const& rankings) const = 0;
+    virtual Set<ConfigurationSearchPoint> next_points_from(Set<PointEvaluation> const& rankings) const = 0;
 
     virtual ExplorationInterface* clone() const = 0;
     virtual ~ExplorationInterface() = default;
@@ -54,7 +54,7 @@ class ExplorationInterface {
 //! \brief Keeps the best half points, to which we add the shifted points from each (with a distance 1 if possible)
 class ShiftAndKeepBestHalfExploration : public ExplorationInterface {
   public:
-    Set<ConfigurationSearchPoint> next_points_from(Set<PointRanking> const& rankings) const override;
+    Set<ConfigurationSearchPoint> next_points_from(Set<PointEvaluation> const& rankings) const override;
     ExplorationInterface* clone() const override;
 };
 

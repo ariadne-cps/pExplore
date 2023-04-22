@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_point_ranking.cpp
+ *            test_evaluation.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,15 +28,15 @@
 
 #include "utility/test.hpp"
 #include "pronest/configuration_search_space.hpp"
-#include "point_ranking.hpp"
+#include "evaluation.hpp"
 
 using namespace pExplore;
 using namespace ProNest;
 
-class TestPointRanking {
+class TestEvaluation {
   public:
 
-    static void test_ranking_ordering() {
+    static void test_ranking() {
         ConfigurationPropertyPath use_subdivisions("use_subdivisions");
         ConfigurationPropertyPath sweep_threshold("sweep_threshold");
         ConfigurationSearchParameter bp(use_subdivisions, false, List<int>({0, 1}));
@@ -49,48 +49,47 @@ class TestPointRanking {
         ConfigurationSearchPoint point4 = space.make_point({{use_subdivisions, 0}, {sweep_threshold, 4}});
 
         {
-            PointRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
-            PointRanking a2(point2, 4.0, RankingCriterion::MINIMISE_POSITIVE);
+            PointEvaluation a1(point1, {{}, {}, {}, 2.0});
+            PointEvaluation a2(point2, {{}, {}, {}, 4.0});
+            PointEvaluation a3(point3, {{}, {}, {}, 3.0});
+            PointEvaluation a4(point4, {{}, {}, {}, -1.0});
 
-            bool dummy = true;
-            UTILITY_TEST_FAIL(dummy = a1 < a2);
-            UTILITY_TEST_ASSERT(dummy)
+            UTILITY_TEST_ASSERT(a1 < a2)
+            UTILITY_TEST_ASSERT(a1 < a3)
+            UTILITY_TEST_ASSERT(a4 < a1)
+            UTILITY_TEST_ASSERT(a3 < a2)
+            UTILITY_TEST_ASSERT(a4 < a3)
         }
 
         {
-            PointRanking a1(point1, 2.0, RankingCriterion::MAXIMISE);
-            PointRanking a2(point2, 4.0, RankingCriterion::MAXIMISE);
-            PointRanking a3(point3, 3.0, RankingCriterion::MAXIMISE);
-            PointRanking a4(point4, -1.0, RankingCriterion::MAXIMISE);
+            PointEvaluation a1(point1, {{}, {1}, {}, 2.0});
+            PointEvaluation a2(point2, {{}, {1}, {1}, 4.0});
+            PointEvaluation a3(point3, {{}, {}, {1}, 3.0});
+            PointEvaluation a4(point4, {{}, {}, {}, -1.0});
+            PointEvaluation a5(point1, {{}, {1}, {}, 1.0});
+            PointEvaluation a6(point2, {{}, {1}, {1, 2}, 4.0});
+            PointEvaluation a7(point3, {{}, {}, {1, 2}, 4.0});
+            PointEvaluation a8(point3, {{}, {1, 2}, {}, 2.0});
 
-            UTILITY_TEST_ASSERT(a1 < a2);
-            UTILITY_TEST_ASSERT(a1 < a3);
-            UTILITY_TEST_ASSERT(a4 < a1);
-            UTILITY_TEST_ASSERT(a3 < a2);
-            UTILITY_TEST_ASSERT(a4 < a3);
-        }
-
-        {
-            PointRanking a1(point1, 2.0, RankingCriterion::MINIMISE_POSITIVE);
-            PointRanking a2(point2, -2.0, RankingCriterion::MINIMISE_POSITIVE);
-            PointRanking a3(point3, 3.0, RankingCriterion::MINIMISE_POSITIVE);
-            PointRanking a4(point4, -1.0, RankingCriterion::MINIMISE_POSITIVE);
-
-            UTILITY_TEST_ASSERT(a2 < a1);
-            UTILITY_TEST_ASSERT(a3 < a1);
-            UTILITY_TEST_ASSERT(a4 < a1);
-            UTILITY_TEST_ASSERT(a2 < a3);
-            UTILITY_TEST_ASSERT(a2 < a4);
+            UTILITY_TEST_ASSERT(a1 < a2)
+            UTILITY_TEST_ASSERT(a3 < a1)
+            UTILITY_TEST_ASSERT(a4 < a1)
+            UTILITY_TEST_ASSERT(a3 < a2)
+            UTILITY_TEST_ASSERT(a4 < a3)
+            UTILITY_TEST_ASSERT(a5 < a1)
+            UTILITY_TEST_ASSERT(a2 < a6)
+            UTILITY_TEST_ASSERT(a3 < a7)
+            UTILITY_TEST_ASSERT(a2 < a8)
         }
 
     }
 
     static void test() {
-        UTILITY_TEST_CALL(test_ranking_ordering());
+        UTILITY_TEST_CALL(test_ranking())
     }
 };
 
 int main() {
-    TestPointRanking::test();
+    TestEvaluation::test();
     return UTILITY_TEST_FAILURES;
 }

@@ -2,7 +2,7 @@ set(LIBRARY_NAME PEXPLORE_SRC)
 
 add_library(${LIBRARY_NAME} OBJECT
         task_manager.cpp
-        point_ranking.cpp
+        evaluation.cpp
         exploration.cpp
         )
 

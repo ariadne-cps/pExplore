@@ -27,7 +27,7 @@
  */
 
 /*! \file constraint_set.hpp
- *  \brief Class for defining a set of constraints.
+ *  \brief Class for defining a set of constraints, whose state will change over time.
  */
 
 #ifndef PEXPLORE_CONSTRAINT_SET
@@ -46,47 +46,121 @@ using std::ostream;
 using std::min;
 
 template<class R> class ConstraintSet : public WritableInterface {
-public:
+  public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    ConstraintSet(List<Constraint<R>> const& constraints, RankingCriterion const& criterion) :
-        _constraints(constraints), _criterion(criterion), _has_critical_constraints(false) {
+    ConstraintSet(List<Constraint<R>> const& constraints) : _constraint_states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
         for (auto const& c : constraints) {
-            if (c.severity() == ConstraintSeverity::CRITICAL) {
-                _has_critical_constraints = true;
-                break;
+            _constraint_states.push_back(c);
+        }
+    }
+
+    ConstraintSet() : ConstraintSet(List<Constraint<R>>()) { }
+
+    PointEvaluation evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
+        return {point, evaluate(input,output)};
+    }
+
+    ConstraintEvaluation evaluate(InputType const& input, OutputType const& output) const {
+        UTILITY_PRECONDITION(_num_active_constraints > 0)
+        double objective = 0.0;
+        Set<size_t> successes;
+        Set<size_t> hard_failures;
+        Set<size_t> soft_failures;
+        for (size_t i=0; i<_constraint_states.size(); ++i) {
+            auto const& s = _constraint_states.at(i);
+            if (not s.has_succeeded() and not s.has_failed()) {
+                auto const& c = s.constraint();
+                auto robustness = c.robustness(input,output);
+                switch (c.objective_impact()) {
+                    case ConstraintObjectiveImpact::UNSIGNED :
+                        objective += abs(robustness);
+                        break;
+                    case ConstraintObjectiveImpact::SIGNED :
+                        objective += robustness;
+                        break;
+                    case ConstraintObjectiveImpact::NONE :
+                        break;
+                    default : UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact for evaluation.")
+                }
+                if (robustness < 0) {
+                    switch (c.failure_kind()) {
+                        case ConstraintFailureKind::HARD :
+                            hard_failures.insert(i);
+                            break;
+                        case ConstraintFailureKind::SOFT :
+                            soft_failures.insert(i);
+                            break;
+                        case ConstraintFailureKind::NONE :
+                            break;
+                        default : UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind for evaluation.")
+                    }
+                } else {
+                    successes.insert(i);
+                }
+            }
+        }
+        return {successes, hard_failures, soft_failures, objective};
+    }
+
+    //! \brief Update all constraints according to \a input and \a output, setting failures and successes,
+    //! and if necessary deactivating the constraint
+    //! \details The group_id from a deactivated constraint is used to deactivate other constraints
+    void update_from(InputType const& input, OutputType const& output) {
+        Set<size_t> group_ids_to_deactivate;
+        auto eval = evaluate(input,output);
+
+        for (size_t i=0; i<_constraint_states.size(); ++i) {
+            auto& s = _constraint_states.at(i);
+
+            if (eval.successes().contains(i)) {
+                s.set_success();
+                if (s.constraint().success_action() == ConstraintSuccessAction::DEACTIVATE) {
+                    group_ids_to_deactivate.insert(s.constraint().group_id());
+                }
+            }
+
+            if (eval.hard_failures().contains(i)) {
+                s.set_failure();
+                group_ids_to_deactivate.insert(s.constraint().group_id());
+            }
+
+            if (group_ids_to_deactivate.contains(s.constraint().group_id())) {
+                s.deactivate();
+                --_num_active_constraints;
             }
         }
     }
 
-    ConstraintSet() : _constraints(List<Constraint<R>>()), _criterion(RankingCriterion::MAXIMISE), _has_critical_constraints(false) { }
-
-    PointRanking robustness(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
-        double rob = std::numeric_limits<double>::max();
-        for (auto const& c : _constraints) {
-            rob = min(rob, c.robustness(input, output));
-        }
-        return {point, rob, _criterion};
+    List<Constraint<R>> active_constraints() const {
+        List<Constraint<R>> result;
+        for (auto const& s : _constraint_states)
+            if (s.is_active())
+                result.push_back(s);
+        return result;
     }
 
-    bool has_critical_constraints() const {
-        return _has_critical_constraints;
+    size_t num_active_constraints() const { return _num_active_constraints; }
+
+    bool is_inactive() const { return _num_active_constraints == 0; }
+
+    List<ConstraintState<R>> const& constraint_states() const {
+        return _constraint_states;
     }
-
-    List<Constraint<R>> const& constraints() const { return _constraints; }
-
-    RankingCriterion const& criterion() const { return _criterion; }
 
     virtual ostream& _write(ostream& os) const {
-        os << "{" << _constraints << ": " << _criterion << "}";
-        return os;
+        return os << "{" << _constraint_states << ": " << "}";
     }
 
   private:
-    List<Constraint<R>> _constraints;
-    RankingCriterion _criterion;
-    bool _has_critical_constraints;
+    List<ConstraintState<R>> _constraint_states;
+    size_t _num_active_constraints;
+};
+
+template<class R> struct NoActiveConstraintsException : public std::runtime_error {
+    NoActiveConstraintsException(List<ConstraintState<R>> const& cs) : std::runtime_error("No more active constraints are present"), constraint_states(cs) { }
+    List<ConstraintState<R>> const constraint_states;
 };
 
 } // namespace pExplore

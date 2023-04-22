@@ -1,5 +1,5 @@
 /***************************************************************************
- *            point_ranking.hpp
+ *            evaluation.hpp
  *
  *  Copyright  2007-20  Luca Geretti
  *
@@ -26,12 +26,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file task_execution_ranking.hpp
- *  \brief Class for defining the score for a point.
+/*! \file evaluation.hpp
+ *  \brief Class for defining the evaluation for a point.
  */
 
-#ifndef PEXPLORE_POINT_RANKING
-#define PEXPLORE_POINT_RANKING
+#ifndef PEXPLORE_EVALUATION
+#define PEXPLORE_EVALUATION
 
 #include "utility/container.hpp"
 #include "utility/writable.hpp"
@@ -41,37 +41,54 @@ namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
 using Utility::WritableInterface;
+using Utility::Set;
 using std::to_string;
 using std::ostream;
+using std::size_t;
 
-//! \brief The criterion for ranking
-//! \details MAXIMISE: the highest values are preferred
-//!          MINIMISE_POSITIVE: positive values are preferred with small modulus, followed by negatives with the usual order
-enum class RankingCriterion { MINIMISE_POSITIVE, MAXIMISE };
-inline std::ostream& operator<<(std::ostream& os, const RankingCriterion opt) {
-    switch (opt) {
-        case RankingCriterion::MAXIMISE: os << "MAXIMISE"; break;
-        case RankingCriterion::MINIMISE_POSITIVE: os << "MINIMISE_POSITIVE"; break;
-        default: UTILITY_FAIL_MSG("Unhandled RankingCriterion value.");
-    }
-    return os;
-}
+//! \brief The evaluation of a constraint
+class ConstraintEvaluation : public WritableInterface {
+  public:
+    ConstraintEvaluation(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective);
 
-class PointRanking : public WritableInterface {
-public:
-    PointRanking(ConfigurationSearchPoint const& p, double s, RankingCriterion const& criterion);
-    ConfigurationSearchPoint const& point() const;
-    double score() const;
-    //! \brief Ordering is based on the criterion
-    bool operator<(PointRanking const& s) const;
+    Set<size_t> const& successes() const;
+    Set<size_t> const& hard_failures() const;
+    Set<size_t> const& soft_failures() const;
+
+    double objective() const;
+
+    //! \brief Ordering is minimum over hard_failures, then soft_failures, then objective
+    //! \details Successes are not used
+    bool operator<(ConstraintEvaluation const& e) const;
+
+    //! \brief Equality checking
+    bool operator==(ConstraintEvaluation const& e) const;
 
     virtual ostream& _write(ostream& os) const;
-private:
+  private:
+    Set<size_t> _successes;
+    Set<size_t> _hard_failures;
+    Set<size_t> _soft_failures;
+    double _objective;
+};
+
+//! \brief The point-evaluation couple
+class PointEvaluation : public WritableInterface {
+  public:
+    PointEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation);
+
+    ConfigurationSearchPoint const& point() const;
+    ConstraintEvaluation const& evaluation() const;
+
+    //! \brief Ordering uses the evaluation
+    bool operator<(PointEvaluation const& s) const;
+
+    virtual ostream& _write(ostream& os) const;
+  private:
     ConfigurationSearchPoint _point;
-    double _score;
-    RankingCriterion _criterion;
+    ConstraintEvaluation _evaluation;
 };
 
 } // namespace pExplore
 
-#endif // PEXPLORE_POINT_RANKING
+#endif // PEXPLORE_EVALUATION

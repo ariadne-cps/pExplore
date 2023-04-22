@@ -39,7 +39,7 @@
 #include "conclog/logging.hpp"
 #include "utility/container.hpp"
 #include "task_runner.hpp"
-#include "point_ranking.hpp"
+#include "evaluation.hpp"
 
 namespace pExplore {
 
@@ -82,8 +82,8 @@ class TaskManager {
     void set_exploration(ExplorationInterface const& exploration);
 
     //! \brief The best points saved
-    List<PointRanking> best_rankings() const;
-    void append_best_ranking(PointRanking const& point);
+    List<PointEvaluation> best_rankings() const;
+    void append_best_ranking(PointEvaluation const& point);
     void clear_best_rankings();
 
     //! \brief Print best rankings in a .m file for plotting
@@ -97,7 +97,7 @@ class TaskManager {
     unsigned int _concurrency;
     std::shared_ptr<ExplorationInterface> _exploration;
     std::mutex _data_mutex;
-    List<PointRanking> _best_rankings;
+    List<PointEvaluation> _best_rankings;
 };
 
 } // namespace pExplore

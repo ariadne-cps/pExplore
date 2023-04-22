@@ -55,19 +55,41 @@ typedef TaskOutput<R> O;
 class TestConstraint {
   public:
 
-    void test_constraint_creation() {
-        Constraint<R> c("chosen_step_size", ConstraintSeverity::PERMISSIVE,
-                        [](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); });
+    void test_create_empty_constraint() {
+        auto c = ConstraintBuilder<R>([](I const&, O const&) { return 0.0; }).build();
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto rob = c.robustness(input, output);
-        UTILITY_TEST_PRINT(c);
-        UTILITY_TEST_EQUALS(rob,9);
-        UTILITY_TEST_EQUALS(c.severity(), ConstraintSeverity::PERMISSIVE);
+        auto robustness = c.robustness(input, output);
+        UTILITY_TEST_PRINT(c)
+        UTILITY_TEST_EQUALS(c.group_id(),0)
+        UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::NONE)
+        UTILITY_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::NONE)
+        UTILITY_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::NONE)
+        UTILITY_TEST_EQUALS(robustness,0.0)
+    }
+
+    void test_create_filled_constraint() {
+        auto c = ConstraintBuilder<R>([](I const& input, O const& output) { return static_cast<double>(output.o + input.i1); })
+                .set_name("chosen_step_size")
+                .set_group_id(1)
+                .set_success_action(ConstraintSuccessAction::DEACTIVATE)
+                .set_failure_kind(ConstraintFailureKind::SOFT)
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
+        auto input = I(2,{1,2});
+        auto output = O(7);
+        auto robustness = c.robustness(input, output);
+        UTILITY_TEST_PRINT(c)
+        UTILITY_TEST_EQUALS(c.group_id(),1)
+        UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::DEACTIVATE)
+        UTILITY_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::SOFT)
+        UTILITY_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::SIGNED)
+        UTILITY_TEST_EQUALS(robustness,9)
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_constraint_creation())
+        UTILITY_TEST_CALL(test_create_empty_constraint())
+        UTILITY_TEST_CALL(test_create_filled_constraint())
     }
 };
 

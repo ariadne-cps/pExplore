@@ -49,7 +49,7 @@ using Utility::List;
 using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 
-class PointRanking;
+class PointEvaluation;
 template<class R> class ConstraintSet;
 
 template<class R> struct TaskInput;
@@ -69,13 +69,13 @@ class TaskInterface {
     virtual ConstraintSet<R> const& constraint_set() const = 0;
     //! \brief Set the constraint set for the task
     virtual void set_constraint_set(ConstraintSet<R> const& constraint_set) = 0;
+    //! \brief Update the constraint set given the \a input and \a output
+    virtual void update_constraint_set(InputType const& input, OutputType const& output) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
-    //! \brief Rank, using the constraints, the cost of points from output and execution time, possibly using the input \a in
-    //! \details While the robustness of a given point is the minimum over the robustness of all constraints, the actual cost ordering on the set
-    //! instead depends on the RankingCriterion
-    virtual Set<PointRanking> rank(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
+    //! \brief Evaluate, using the constraints, all the point-output pairs in \a data, possibly using the input \a in
+    virtual Set<PointEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 
 } // namespace pExplore
