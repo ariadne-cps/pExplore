@@ -135,16 +135,6 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         }
     }
 
-    List<Constraint<R>> active_constraints() const {
-        List<Constraint<R>> result;
-        for (auto const& s : _states)
-            if (s.is_active())
-                result.push_back(s);
-        return result;
-    }
-
-    size_t num_active_constraints() const { return _num_active_constraints; }
-
     bool is_inactive() const { return _num_active_constraints == 0; }
 
     List<ConstraintState<R>> const& states() const {

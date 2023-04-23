@@ -45,7 +45,7 @@ unsigned int TaskManager::concurrency() const {
 }
 
 void TaskManager::set_concurrency(unsigned int value) {
-    UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0);
+    UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0)
     std::lock_guard<std::mutex> lock(_data_mutex);
     _concurrency = value;
 }
@@ -113,8 +113,8 @@ void TaskManager::print_best_rankings() const {
         Map<size_t,List<int>> values;
         List<size_t> soft_failures;
         for (size_t i=0; i<dimension; ++i) values.insert(make_pair(i,List<int>()));
-        for (auto ranking : _best_rankings) {
-            auto point = ranking.point();
+        for (auto const& ranking : _best_rankings) {
+            auto const& point = ranking.point();
             for (size_t i=0; i<dimension; ++i) values.at(i).push_back(point.coordinates()[i]);
         }
         file << "figure(1);\n";

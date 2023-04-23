@@ -42,8 +42,6 @@ template<class R> struct TaskOutput;
 
 template<class R> class RobustnessControllerInterface {
   public:
-    typedef TaskInput<R> InputType;
-    typedef TaskOutput<R> OutputType;
 
     //! \brief Apply the control to the \a robustness value from a constraint, returning the controlled value
     //! \details The application may change the state of the controller, this is why the method is not const
@@ -55,9 +53,6 @@ template<class R> class RobustnessControllerInterface {
 //! \brief Return the original robustness
 template<class R> class IdentityRobustnessController : public RobustnessControllerInterface<R> {
   public:
-    typedef TaskInput<R> InputType;
-    typedef TaskOutput<R> OutputType;
-
     double apply(double robustness, TaskInput<R> const&, TaskOutput<R> const&) override { return robustness; }
     RobustnessControllerInterface<R>* clone() const override { return new IdentityRobustnessController(); }
 };
@@ -65,8 +60,6 @@ template<class R> class IdentityRobustnessController : public RobustnessControll
 //! \brief Spread the error in a linearly proportional way with respect to the time progressed
 template<class R> class TimeProgressLinearRobustnessController : public RobustnessControllerInterface<R> {
   public:
-    typedef TaskInput<R> InputType;
-    typedef TaskOutput<R> OutputType;
     typedef std::function<double(TaskInput<R> const&, TaskOutput<R> const&)> TimeFunction;
 
     TimeProgressLinearRobustnessController(TimeFunction func, double final_time) : _t_func(func), _final_time(final_time), _accumulated_value(0.0) { }

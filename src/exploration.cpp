@@ -30,15 +30,15 @@
 
 namespace pExplore {
 
-Set<ConfigurationSearchPoint> ShiftAndKeepBestHalfExploration::next_points_from(Set<PointScore> const& rankings) const {
+Set<ConfigurationSearchPoint> ShiftAndKeepBestHalfExploration::next_points_from(Set<PointScore> const& scores) const {
     Set<ConfigurationSearchPoint> result;
     size_t cnt = 0;
-    for (auto it = rankings.begin(); it != rankings.end(); ++it) {
-        result.insert(it->point());
+    for (auto const& s : scores) {
+        result.insert(s.point());
         ++cnt;
-        if (cnt >= rankings.size()/2) break;
+        if (cnt >= scores.size()/2) break;
     }
-    result = make_extended_set_by_shifting(result, rankings.size());
+    result = make_extended_set_by_shifting(result, scores.size());
 
     return result;
 }
