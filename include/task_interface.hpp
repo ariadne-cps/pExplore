@@ -49,7 +49,7 @@ using Utility::List;
 using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 
-class PointConstraintEvaluation;
+class PointConstraintScore;
 template<class R> class ConstrainingSpecification;
 
 template<class R> struct TaskInput;
@@ -75,7 +75,7 @@ class TaskInterface {
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
     //! \brief Evaluate, using the constraints, all the point-output pairs in \a data, possibly using the input \a in
-    virtual Set<PointConstraintEvaluation> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
+    virtual Set<PointConstraintScore> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 
 } // namespace pExplore

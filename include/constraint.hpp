@@ -40,7 +40,8 @@
 #include "utility/writable.hpp"
 #include "utility/macros.hpp"
 #include "pronest/configuration_search_point.hpp"
-#include "evaluation.hpp"
+#include "robustness_controller.hpp"
+#include "score.hpp"
 
 namespace pExplore {
 
@@ -50,6 +51,7 @@ using Utility::Set;
 using Utility::Map;
 using ProNest::ConfigurationSearchPoint;
 using std::ostream;
+using std::shared_ptr;
 
 template<class R> struct TaskInput;
 template<class R> struct TaskOutput;
@@ -82,7 +84,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintFailureKind fa
     return os;
 }
 
-//! \brief Enumeration for the impact of the evaluation of the constraint on the objective function
+//! \brief Enumeration for the impact of the evaluation of the constraint on the global objective function
 //! \details NONE: no impact
 //!          SIGNED: the sign of the evaluation is considered
 //!          UNSIGNED: the absolute value of the evaluation is considered
@@ -97,11 +99,6 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintObjectiveImpac
     return os;
 }
 
-template<class R> class CriticalRankingFailureException : public std::runtime_error {
-public:
-    CriticalRankingFailureException(double score) : std::runtime_error("The execution has critical failure with the following score: " + to_string(score)) { }
-};
-
 template<class R> class ConstraintBuilder;
 
 //! \brief A constraint in the input \a in and output \a out objects of the task
@@ -113,8 +110,9 @@ template<class R> class Constraint : public WritableInterface {
     typedef TaskOutput<R> OutputType;
 
   protected:
-    Constraint(String const& name, size_t const& group_id, ConstraintSuccessAction const& success_action, ConstraintFailureKind const& failure_kind, ConstraintObjectiveImpact const& objective_impact, std::function<double(InputType const&, OutputType const&)> func)
-            : _name(name), _group_id(group_id), _success_action(success_action), _failure_kind(failure_kind), _objective_impact(objective_impact), _func(func) { }
+    Constraint(String const& name, size_t const& group_id, ConstraintSuccessAction const& success_action, ConstraintFailureKind const& failure_kind, ConstraintObjectiveImpact const& objective_impact,
+               std::function<double(InputType const&, OutputType const&)> func, RobustnessControllerInterface<R> const& controller)
+            : _name(name), _group_id(group_id), _success_action(success_action), _failure_kind(failure_kind), _objective_impact(objective_impact), _func(func), _controller_ptr(controller.clone()) { }
 
   public:
     String const& name() const { return _name; }
@@ -123,8 +121,10 @@ template<class R> class Constraint : public WritableInterface {
     ConstraintFailureKind failure_kind() const { return _failure_kind; }
     ConstraintObjectiveImpact objective_impact() const { return _objective_impact; }
 
+    RobustnessControllerInterface<R> const& controller() const { return *_controller_ptr; }
+
     //! \brief Get the degree of satisfaction of the constraint given an \a input and \a output
-    double robustness(InputType const& input, OutputType const& output) const { return _func(input, output); }
+    double robustness(InputType const& input, OutputType const& output) const { return _controller_ptr->apply(_func(input, output),input,output); }
 
     ostream& _write(ostream& os) const override {
         return os << "{'" << _name << "', group_id=" << _group_id << ", success_action=" << _success_action << ", failure_kind=" << _failure_kind << ", objective_impact=" << _objective_impact << "}";
@@ -137,6 +137,7 @@ template<class R> class Constraint : public WritableInterface {
     ConstraintFailureKind _failure_kind;
     ConstraintObjectiveImpact _objective_impact;
     std::function<double(InputType const&, OutputType const&)> _func;
+    shared_ptr<RobustnessControllerInterface<R>> _controller_ptr;
 };
 
 //! \brief A builder for Constraint, to account for the various optional arguments
@@ -146,15 +147,17 @@ template<class R> class ConstraintBuilder {
     typedef TaskOutput<R> OutputType;
 
     ConstraintBuilder(std::function<double(InputType const&, OutputType const&)> func) :
-        _name(std::string()), _group_id(0), _success_action(ConstraintSuccessAction::NONE), _failure_kind(ConstraintFailureKind::NONE), _objective_impact(ConstraintObjectiveImpact::NONE), _func(func) { }
+        _name(std::string()), _group_id(0), _success_action(ConstraintSuccessAction::NONE), _failure_kind(ConstraintFailureKind::NONE), _objective_impact(ConstraintObjectiveImpact::NONE),
+        _func(func), _controller_ptr(new IdentityRobustnessController<R>()) { }
 
     ConstraintBuilder& set_name(String name) { _name = name; return *this; }
     ConstraintBuilder& set_group_id(size_t group_id) { _group_id = group_id; return *this; }
     ConstraintBuilder& set_success_action(ConstraintSuccessAction const& success_action) { _success_action = success_action; return *this; }
     ConstraintBuilder& set_failure_kind(ConstraintFailureKind const& failure_kind) { _failure_kind = failure_kind; return *this; }
     ConstraintBuilder& set_objective_impact(ConstraintObjectiveImpact const& objective_impact) { _objective_impact = objective_impact; return *this; }
+    ConstraintBuilder& set_controller(RobustnessControllerInterface<R> const& controller) { _controller_ptr.reset(controller.clone()); return *this; }
 
-    Constraint<R> build() const { return {_name,_group_id,_success_action,_failure_kind,_objective_impact,_func}; }
+    Constraint<R> build() const { return {_name,_group_id,_success_action,_failure_kind,_objective_impact,_func,*_controller_ptr}; }
 
   private:
     String _name;
@@ -163,6 +166,7 @@ template<class R> class ConstraintBuilder {
     ConstraintFailureKind _failure_kind;
     ConstraintObjectiveImpact _objective_impact;
     std::function<double(InputType const&, OutputType const&)> const _func;
+    shared_ptr<RobustnessControllerInterface<R>> _controller_ptr;
 };
 
 //! \brief The state of a constraint as it is processed

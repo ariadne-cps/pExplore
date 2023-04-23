@@ -1,5 +1,5 @@
 /***************************************************************************
- *            test_evaluation.cpp
+ *            test_score.cpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -28,12 +28,12 @@
 
 #include "utility/test.hpp"
 #include "pronest/configuration_search_space.hpp"
-#include "evaluation.hpp"
+#include "score.hpp"
 
 using namespace pExplore;
 using namespace ProNest;
 
-class TestEvaluation {
+class TestScore {
   public:
 
     static void test_ranking() {
@@ -49,10 +49,10 @@ class TestEvaluation {
         ConfigurationSearchPoint point4 = space.make_point({{use_subdivisions, 0}, {sweep_threshold, 4}});
 
         {
-            PointConstraintEvaluation a1(point1, {{}, {}, {}, 2.0});
-            PointConstraintEvaluation a2(point2, {{}, {}, {}, 4.0});
-            PointConstraintEvaluation a3(point3, {{}, {}, {}, 3.0});
-            PointConstraintEvaluation a4(point4, {{}, {}, {}, -1.0});
+            PointConstraintScore a1(point1, {{}, {}, {}, 2.0});
+            PointConstraintScore a2(point2, {{}, {}, {}, 4.0});
+            PointConstraintScore a3(point3, {{}, {}, {}, 3.0});
+            PointConstraintScore a4(point4, {{}, {}, {}, -1.0});
 
             UTILITY_TEST_ASSERT(a1 < a2)
             UTILITY_TEST_ASSERT(a1 < a3)
@@ -62,14 +62,14 @@ class TestEvaluation {
         }
 
         {
-            PointConstraintEvaluation a1(point1, {{}, {1}, {}, 2.0});
-            PointConstraintEvaluation a2(point2, {{}, {1}, {1}, 4.0});
-            PointConstraintEvaluation a3(point3, {{}, {}, {1}, 3.0});
-            PointConstraintEvaluation a4(point4, {{}, {}, {}, -1.0});
-            PointConstraintEvaluation a5(point1, {{}, {1}, {}, 1.0});
-            PointConstraintEvaluation a6(point2, {{}, {1}, {1, 2}, 4.0});
-            PointConstraintEvaluation a7(point3, {{}, {}, {1, 2}, 4.0});
-            PointConstraintEvaluation a8(point3, {{}, {1, 2}, {}, 2.0});
+            PointConstraintScore a1(point1, {{}, {1}, {}, 2.0});
+            PointConstraintScore a2(point2, {{}, {1}, {1}, 4.0});
+            PointConstraintScore a3(point3, {{}, {}, {1}, 3.0});
+            PointConstraintScore a4(point4, {{}, {}, {}, -1.0});
+            PointConstraintScore a5(point1, {{}, {1}, {}, 1.0});
+            PointConstraintScore a6(point2, {{}, {1}, {1, 2}, 4.0});
+            PointConstraintScore a7(point3, {{}, {}, {1, 2}, 4.0});
+            PointConstraintScore a8(point3, {{}, {1, 2}, {}, 2.0});
 
             UTILITY_TEST_ASSERT(a1 < a2)
             UTILITY_TEST_ASSERT(a3 < a1)
@@ -90,6 +90,6 @@ class TestEvaluation {
 };
 
 int main() {
-    TestEvaluation::test();
+    TestScore::test();
     return UTILITY_TEST_FAILURES;
 }

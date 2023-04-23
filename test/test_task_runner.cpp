@@ -125,13 +125,15 @@ template<> struct Configuration<A> : public SearchableConfiguration {
 namespace pExplore {
 
 template<> struct TaskInput<A> {
-    TaskInput(double const& x_) : x(x_) { }
+    TaskInput(double const& x_, double const& step_) : x(x_), step(step_) { }
     double const& x;
+    double const& step;
 };
 
 template<> struct TaskOutput<A> {
-    TaskOutput(double const& y_) : y(y_) { }
+    TaskOutput(double const& y_, double const& step_) : y(y_), step(step_) { }
     double const y;
+    double const step;
 };
 
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
@@ -142,7 +144,7 @@ template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
             case LevelOptions::MEDIUM : level_value = 1; break;
             default : level_value = 0;
         }
-        return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0)};
+        return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0), in.step+1};
     }
 };
 
@@ -156,7 +158,7 @@ public:
     List<double> execute() {
         List<double> result;
         for (size_t i=0; i<10; ++i) {
-            runner().push(TaskInput<A>(1.0));
+            runner().push(TaskInput<A>(1.0,0.0));
             result.push_back(runner().pull().y);
         }
         return result;
@@ -196,6 +198,16 @@ class TestTaskRunner {
 
   public:
 
+    void test_failure() {
+
+        auto a = _get_runnable();
+        double offset = 12.0;
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; }).set_failure_kind(ConstraintFailureKind::HARD).build();
+        a.set_constraint_set({constraint});
+
+        UTILITY_TEST_FAIL(a.execute())
+    }
+
     void test_success() {
 
         auto a = _get_runnable();
@@ -207,19 +219,23 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(result)
     }
 
-    void test_failure() {
+    void test_time_progress_linear_controller() {
 
         auto a = _get_runnable();
-        double offset = 12.0;
-        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; }).set_failure_kind(ConstraintFailureKind::HARD).build();
+        double offset = 8.0;
+        double final_time = 10.0;
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
+                .set_controller(TimeProgressLinearRobustnessController<A>([](I const&, O const& o) { return o.step; },final_time)).build();
         a.set_constraint_set({constraint});
 
-        UTILITY_TEST_FAIL(a.execute())
+        auto result = a.execute();
+        UTILITY_TEST_PRINT(result)
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_success())
         UTILITY_TEST_CALL(test_failure())
+        UTILITY_TEST_CALL(test_success())
+        UTILITY_TEST_CALL(test_time_progress_linear_controller())
     }
 };
 

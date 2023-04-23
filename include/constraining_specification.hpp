@@ -26,7 +26,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file constrain.hpp
+/*! \file constraining_specification.hpp
  *  \brief Class for defining a time-varying constraining specification and a control strategy to enforce it.
  */
 
@@ -58,11 +58,11 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
 
     ConstrainingSpecification() : ConstrainingSpecification(List<Constraint<R>>()) { }
 
-    PointConstraintEvaluation evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
+    PointConstraintScore evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
         return {point, evaluate(input,output)};
     }
 
-    ConstraintEvaluation evaluate(InputType const& input, OutputType const& output) const {
+    ConstraintScore evaluate(InputType const& input, OutputType const& output) const {
         UTILITY_PRECONDITION(_num_active_constraints > 0)
         double objective = 0.0;
         Set<size_t> successes;

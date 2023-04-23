@@ -1,5 +1,5 @@
 /***************************************************************************
- *            evaluation.hpp
+ *            score.hpp
  *
  *  Copyright  2007-20  Luca Geretti
  *
@@ -26,12 +26,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*! \file evaluation.hpp
- *  \brief Class for defining the evaluation for a point.
+/*! \file score.hpp
+ *  \brief Class for defining the score with respect to a constraint.
  */
 
-#ifndef PEXPLORE_EVALUATION
-#define PEXPLORE_EVALUATION
+#ifndef PEXPLORE_SCORE
+#define PEXPLORE_SCORE
 
 #include "utility/container.hpp"
 #include "utility/writable.hpp"
@@ -46,10 +46,10 @@ using std::to_string;
 using std::ostream;
 using std::size_t;
 
-//! \brief The evaluation of a constraint
-class ConstraintEvaluation : public WritableInterface {
+//! \brief The score of a constraint
+class ConstraintScore : public WritableInterface {
   public:
-    ConstraintEvaluation(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective);
+    ConstraintScore(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective);
 
     Set<size_t> const& successes() const;
     Set<size_t> const& hard_failures() const;
@@ -59,10 +59,10 @@ class ConstraintEvaluation : public WritableInterface {
 
     //! \brief Ordering is minimum over hard_failures, then soft_failures, then objective
     //! \details Successes are not used
-    bool operator<(ConstraintEvaluation const& e) const;
+    bool operator<(ConstraintScore const& e) const;
 
     //! \brief Equality checking
-    bool operator==(ConstraintEvaluation const& e) const;
+    bool operator==(ConstraintScore const& e) const;
 
     virtual ostream& _write(ostream& os) const;
   private:
@@ -72,23 +72,23 @@ class ConstraintEvaluation : public WritableInterface {
     double _objective;
 };
 
-//! \brief The point + contraint evaluation couple
-class PointConstraintEvaluation : public WritableInterface {
+//! \brief The point + contraint score couple
+class PointConstraintScore : public WritableInterface {
   public:
-    PointConstraintEvaluation(ConfigurationSearchPoint const& p, ConstraintEvaluation const& evaluation);
+    PointConstraintScore(ConfigurationSearchPoint const& p, ConstraintScore const& evaluation);
 
     ConfigurationSearchPoint const& point() const;
-    ConstraintEvaluation const& evaluation() const;
+    ConstraintScore const& evaluation() const;
 
-    //! \brief Ordering uses the evaluation
-    bool operator<(PointConstraintEvaluation const& s) const;
+    //! \brief Ordering uses the score
+    bool operator<(PointConstraintScore const& s) const;
 
     virtual ostream& _write(ostream& os) const;
   private:
     ConfigurationSearchPoint _point;
-    ConstraintEvaluation _evaluation;
+    ConstraintScore _evaluation;
 };
 
 } // namespace pExplore
 
-#endif // PEXPLORE_EVALUATION
+#endif // PEXPLORE_SCORE

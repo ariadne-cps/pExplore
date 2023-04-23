@@ -40,7 +40,7 @@
 #include "pronest/configuration_property.tpl.hpp"
 #include "utility/container.hpp"
 #include "task_runner_interface.hpp"
-#include "evaluation.hpp"
+#include "score.hpp"
 #include "exploration.hpp"
 
 namespace pExplore {
