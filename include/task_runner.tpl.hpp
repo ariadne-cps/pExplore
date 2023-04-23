@@ -64,15 +64,15 @@ private:
 };
 
 template<class C> TaskRunnable<C>::TaskRunnable(ConfigurationType const& configuration) : Configurable<C>(configuration) {
-    TaskManager::instance().choose_runner_for(*this);
+    TaskManager::instance().choose_runner_for(*this,ConstrainingSpecification<C>());
 }
 
 template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterface<C>> const& runner) {
     this->_runner = runner;
 }
 
-template<class C> void TaskRunnable<C>::set_constraining(ConstrainingSpecification<C> const& constraint_set) {
-    _runner->task().set_constraining(constraint_set);
+template<class C> void TaskRunnable<C>::set_constraining(ConstrainingSpecification<C> const& constraining) {
+    TaskManager::instance().choose_runner_for(*this,constraining);
 }
 
 template<class C> TaskRunnerInterface<C>& TaskRunnable<C>::runner() {
@@ -111,9 +111,6 @@ template<class C> void SequentialRunner<C>::push(InputType const& input) {
     auto result = this->_task.run(input,this->configuration());
 
     this->_task.update_constraining(input,result);
-
-    if (this->_task.constraining().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraining().states());
 
     _last_output.reset(new OutputType(result));
 }
@@ -161,9 +158,6 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     auto result = _output_buffer.pull();
 
     this->_task.update_constraining(_last_used_input,result);
-
-    if (this->_task.constraining().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraining().states());
 
     return result;
 }

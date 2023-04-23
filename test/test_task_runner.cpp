@@ -219,6 +219,13 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(result)
     }
 
+    void test_no_constraining() {
+
+        auto a = _get_runnable();
+        auto result = a.execute();
+        UTILITY_TEST_PRINT(result)
+    }
+
     void test_time_progress_linear_controller() {
 
         auto a = _get_runnable();
@@ -235,6 +242,7 @@ class TestTaskRunner {
     void test() {
         UTILITY_TEST_CALL(test_failure())
         UTILITY_TEST_CALL(test_success())
+        UTILITY_TEST_CALL(test_no_constraining())
         UTILITY_TEST_CALL(test_time_progress_linear_controller())
     }
 };
