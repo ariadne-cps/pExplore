@@ -65,12 +65,12 @@ class TaskInterface {
 
     //! \brief The name of the task, to be used for thread naming
     virtual String name() const = 0;
-    //! \brief Return the constraint set for the task
-    virtual ConstrainingSpecification<R> const& constraint_set() const = 0;
-    //! \brief Set the constraint set for the task
-    virtual void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) = 0;
-    //! \brief Update the constraint set given the \a input and \a output
-    virtual void update_constraint_set(InputType const& input, OutputType const& output) = 0;
+    //! \brief Return the constraining specification for the task
+    virtual ConstrainingSpecification<R> const& constraining() const = 0;
+    //! \brief Set the constraining specification for the task
+    virtual void set_constraining(ConstrainingSpecification<R> const& constraining) = 0;
+    //! \brief Update the constraining specification given the \a input and \a output
+    virtual void update_constraining(InputType const& input, OutputType const& output) = 0;
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;

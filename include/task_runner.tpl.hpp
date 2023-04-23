@@ -71,8 +71,8 @@ template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterfac
     this->_runner = runner;
 }
 
-template<class C> void TaskRunnable<C>::set_constraint_set(ConstrainingSpecification<C> const& constraint_set) {
-    _runner->task().set_constraint_set(constraint_set);
+template<class C> void TaskRunnable<C>::set_constraining(ConstrainingSpecification<C> const& constraint_set) {
+    _runner->task().set_constraining(constraint_set);
 }
 
 template<class C> TaskRunnerInterface<C>& TaskRunnable<C>::runner() {
@@ -110,10 +110,10 @@ template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const&
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
     auto result = this->_task.run(input,this->configuration());
 
-    this->_task.update_constraint_set(input,result);
+    this->_task.update_constraining(input,result);
 
-    if (this->_task.constraint_set().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
+    if (this->_task.constraining().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraining().states());
 
     _last_output.reset(new OutputType(result));
 }
@@ -160,10 +160,10 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
 
-    this->_task.update_constraint_set(_last_used_input,result);
+    this->_task.update_constraining(_last_used_input,result);
 
-    if (this->_task.constraint_set().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
+    if (this->_task.constraining().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraining().states());
 
     return result;
 }
@@ -178,7 +178,7 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
             auto output = this->_task.run(pkg.first,cfg);
-            auto point_score = this->_task.constraint_set().evaluate(pkg.second,pkg.first,output);
+            auto point_score = this->_task.constraining().evaluate(pkg.second,pkg.first,output);
             _output_buffer.push({output,point_score});
         } catch (std::exception& e) {
             ++_failures;
@@ -239,10 +239,10 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     auto best_point_score = *point_scores.begin();
     auto best_output = point_outputs.get(best_point_score.point());
 
-    this->_task.update_constraint_set(input,best_output);
+    this->_task.update_constraining(input,best_output);
 
-    if (this->_task.constraint_set().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
+    if (this->_task.constraining().is_inactive())
+        throw new NoActiveConstraintsException(this->_task.constraining().states());
 
     TaskManager::instance().append_best_ranking(best_point_score);
 

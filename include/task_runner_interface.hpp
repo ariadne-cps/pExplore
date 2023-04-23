@@ -70,8 +70,8 @@ class TaskRunnable : public Configurable<C> {
     friend class TaskManager;
     typedef Configuration<C> ConfigurationType;
   public:
-    //! \brief Set the constraint set for this runnable, to rank results from multiple configurations
-    void set_constraint_set(ConstrainingSpecification<C> const& constraint_set);
+    //! \brief Set the constraining for this runnable, to rank results from multiple configurations
+    void set_constraining(ConstrainingSpecification<C> const& constraining);
   protected:
     TaskRunnable(ConfigurationType const& configuration);
     //! \brief Set a new runner, useful to override the default runner

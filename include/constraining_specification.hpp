@@ -50,9 +50,9 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    ConstrainingSpecification(List<Constraint<R>> const& constraints) : _constraint_states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
+    ConstrainingSpecification(List<Constraint<R>> const& constraints) : _states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
         for (auto const& c : constraints) {
-            _constraint_states.push_back(c);
+            _states.push_back(c);
         }
     }
 
@@ -68,8 +68,8 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         Set<size_t> successes;
         Set<size_t> hard_failures;
         Set<size_t> soft_failures;
-        for (size_t i=0; i<_constraint_states.size(); ++i) {
-            auto const& s = _constraint_states.at(i);
+        for (size_t i=0; i < _states.size(); ++i) {
+            auto const& s = _states.at(i);
             if (not s.has_succeeded() and not s.has_failed()) {
                 auto const& c = s.constraint();
                 auto robustness = c.robustness(input,output);
@@ -111,8 +111,8 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         Set<size_t> group_ids_to_deactivate;
         auto eval = evaluate(input,output);
 
-        for (size_t i=0; i<_constraint_states.size(); ++i) {
-            auto& s = _constraint_states.at(i);
+        for (size_t i=0; i < _states.size(); ++i) {
+            auto& s = _states.at(i);
 
             if (eval.successes().contains(i)) {
                 s.set_success();
@@ -135,7 +135,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
 
     List<Constraint<R>> active_constraints() const {
         List<Constraint<R>> result;
-        for (auto const& s : _constraint_states)
+        for (auto const& s : _states)
             if (s.is_active())
                 result.push_back(s);
         return result;
@@ -145,16 +145,16 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
 
     bool is_inactive() const { return _num_active_constraints == 0; }
 
-    List<ConstraintState<R>> const& constraint_states() const {
-        return _constraint_states;
+    List<ConstraintState<R>> const& states() const {
+        return _states;
     }
 
     virtual ostream& _write(ostream& os) const {
-        return os << "{" << _constraint_states << ": " << "}";
+        return os << "{" << _states << ": " << "}";
     }
 
   private:
-    List<ConstraintState<R>> _constraint_states;
+    List<ConstraintState<R>> _states;
     size_t _num_active_constraints;
 };
 

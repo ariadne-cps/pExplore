@@ -203,7 +203,7 @@ class TestTaskRunner {
         auto a = _get_runnable();
         double offset = 12.0;
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; }).set_failure_kind(ConstraintFailureKind::HARD).build();
-        a.set_constraint_set({constraint});
+        a.set_constraining({constraint});
 
         UTILITY_TEST_FAIL(a.execute())
     }
@@ -213,7 +213,7 @@ class TestTaskRunner {
         auto a = _get_runnable();
         double offset = 8.0;
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
-        a.set_constraint_set({constraint});
+        a.set_constraining({constraint});
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)
@@ -226,7 +226,7 @@ class TestTaskRunner {
         double final_time = 10.0;
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
                 .set_controller(TimeProgressLinearRobustnessController<A>([](I const&, O const& o) { return o.step; },final_time)).build();
-        a.set_constraint_set({constraint});
+        a.set_constraining({constraint});
 
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)

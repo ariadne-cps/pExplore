@@ -58,9 +58,9 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _constraint_set() {}
   public:
     String name() const override { return _name; }
-    ConstrainingSpecification<R> const& constraint_set() const override { return _constraint_set; }
-    void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
-    void update_constraint_set(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input,output); }
+    ConstrainingSpecification<R> const& constraining() const override { return _constraint_set; }
+    void set_constraining(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
+    void update_constraining(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input, output); }
 
   private:
     String const _name;
