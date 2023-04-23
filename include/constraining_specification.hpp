@@ -58,11 +58,11 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
 
     ConstrainingSpecification() : ConstrainingSpecification(List<Constraint<R>>()) { }
 
-    PointConstraintScore evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
+    PointScore evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
         return {point, evaluate(input,output)};
     }
 
-    ConstraintScore evaluate(InputType const& input, OutputType const& output) const {
+    Score evaluate(InputType const& input, OutputType const& output) const {
         UTILITY_PRECONDITION(_num_active_constraints > 0)
         double objective = 0.0;
         Set<size_t> successes;
@@ -82,7 +82,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
                         break;
                     case ConstraintObjectiveImpact::NONE :
                         break;
-                    default : UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact for evaluation.")
+                    default : UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact for score evaluation.")
                 }
                 if (robustness < 0) {
                     switch (c.failure_kind()) {
@@ -94,7 +94,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
                             break;
                         case ConstraintFailureKind::NONE :
                             break;
-                        default : UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind for evaluation.")
+                        default : UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind for score evaluation.")
                     }
                 } else {
                     successes.insert(i);

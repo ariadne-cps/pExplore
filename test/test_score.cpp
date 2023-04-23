@@ -49,10 +49,10 @@ class TestScore {
         ConfigurationSearchPoint point4 = space.make_point({{use_subdivisions, 0}, {sweep_threshold, 4}});
 
         {
-            PointConstraintScore a1(point1, {{}, {}, {}, 2.0});
-            PointConstraintScore a2(point2, {{}, {}, {}, 4.0});
-            PointConstraintScore a3(point3, {{}, {}, {}, 3.0});
-            PointConstraintScore a4(point4, {{}, {}, {}, -1.0});
+            PointScore a1(point1, {{}, {}, {}, 2.0});
+            PointScore a2(point2, {{}, {}, {}, 4.0});
+            PointScore a3(point3, {{}, {}, {}, 3.0});
+            PointScore a4(point4, {{}, {}, {}, -1.0});
 
             UTILITY_TEST_ASSERT(a1 < a2)
             UTILITY_TEST_ASSERT(a1 < a3)
@@ -62,14 +62,14 @@ class TestScore {
         }
 
         {
-            PointConstraintScore a1(point1, {{}, {1}, {}, 2.0});
-            PointConstraintScore a2(point2, {{}, {1}, {1}, 4.0});
-            PointConstraintScore a3(point3, {{}, {}, {1}, 3.0});
-            PointConstraintScore a4(point4, {{}, {}, {}, -1.0});
-            PointConstraintScore a5(point1, {{}, {1}, {}, 1.0});
-            PointConstraintScore a6(point2, {{}, {1}, {1, 2}, 4.0});
-            PointConstraintScore a7(point3, {{}, {}, {1, 2}, 4.0});
-            PointConstraintScore a8(point3, {{}, {1, 2}, {}, 2.0});
+            PointScore a1(point1, {{}, {1}, {}, 2.0});
+            PointScore a2(point2, {{}, {1}, {1}, 4.0});
+            PointScore a3(point3, {{}, {}, {1}, 3.0});
+            PointScore a4(point4, {{}, {}, {}, -1.0});
+            PointScore a5(point1, {{}, {1}, {}, 1.0});
+            PointScore a6(point2, {{}, {1}, {1, 2}, 4.0});
+            PointScore a7(point3, {{}, {}, {1, 2}, 4.0});
+            PointScore a8(point3, {{}, {1, 2}, {}, 2.0});
 
             UTILITY_TEST_ASSERT(a1 < a2)
             UTILITY_TEST_ASSERT(a3 < a1)

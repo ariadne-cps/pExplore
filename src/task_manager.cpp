@@ -54,11 +54,11 @@ void TaskManager::set_exploration(ExplorationInterface const& exploration) {
     _exploration.reset(exploration.clone());
 }
 
-List<PointConstraintScore> TaskManager::best_rankings() const {
+List<PointScore> TaskManager::best_rankings() const {
     return _best_rankings;
 }
 
-void TaskManager::append_best_ranking(PointConstraintScore const& ranking) {
+void TaskManager::append_best_ranking(PointScore const& ranking) {
     std::lock_guard<std::mutex> lock(_data_mutex);
     _best_rankings.push_back(ranking);
 }

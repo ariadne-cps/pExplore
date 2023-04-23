@@ -103,7 +103,7 @@ private:
     std::condition_variable _output_availability;
 };
 
-template<class O> class ParameterSearchOutputBufferData;
+template<class O> class OutputPointScore;
 
 //! \brief Run a task by detached concurrent search into the parameter space.
 template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
@@ -112,7 +112,7 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
     typedef typename TaskRunnerBase<C>::OutputType OutputType;
     typedef typename TaskRunnerBase<C>::ConfigurationType ConfigurationType;
     typedef Pair<InputType,ConfigurationSearchPoint> InputBufferContentType;
-    typedef ParameterSearchOutputBufferData<OutputType> OutputBufferContentType;
+    typedef OutputPointScore<OutputType> OutputBufferContentType;
     typedef Buffer<InputBufferContentType> InputBufferType;
     typedef Buffer<OutputBufferContentType> OutputBufferType;
   protected:

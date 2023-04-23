@@ -150,11 +150,11 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     return result;
 }
 
-template<class O> class ParameterSearchOutputBufferData {
+template<class O> class OutputPointScore {
   public:
-    ParameterSearchOutputBufferData(O const& output, ConfigurationSearchPoint const& point) : _output(output), _point(point) { }
-    ParameterSearchOutputBufferData(ParameterSearchOutputBufferData<O> const& p) : _output(p._output), _point(p._point) { }
-    ParameterSearchOutputBufferData& operator=(ParameterSearchOutputBufferData<O> const& p) {
+    OutputPointScore(O const& output, ConfigurationSearchPoint const& point) : _output(output), _point(point) { }
+    OutputPointScore(OutputPointScore<O> const& p) : _output(p._output), _point(p._point) { }
+    OutputPointScore& operator=(OutputPointScore<O> const& p) {
         _output = p._output;
         _point = p._point;
         return *this;
@@ -226,14 +226,14 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
         auto io_data = _output_buffer.pull();
         outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(io_data.point(),io_data.output()));
     }
-    auto evaluations = this->_task.evaluate(outputs,input);
-    CONCLOG_PRINTLN_VAR(evaluations);
+    auto scores = this->_task.evaluate(outputs, input);
+    CONCLOG_PRINTLN_VAR(scores);
 
-    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(evaluations);
+    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(scores);
     for (auto p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
-    auto best = *evaluations.begin();
+    auto best = *scores.begin();
 
     this->_task.update_constraint_set(input,outputs.at(best.point()));
 

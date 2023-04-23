@@ -46,10 +46,10 @@ using std::to_string;
 using std::ostream;
 using std::size_t;
 
-//! \brief The score of a constraint
-class ConstraintScore : public WritableInterface {
+//! \brief The score of a constraining specification
+class Score : public WritableInterface {
   public:
-    ConstraintScore(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective);
+    Score(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective);
 
     Set<size_t> const& successes() const;
     Set<size_t> const& hard_failures() const;
@@ -59,10 +59,10 @@ class ConstraintScore : public WritableInterface {
 
     //! \brief Ordering is minimum over hard_failures, then soft_failures, then objective
     //! \details Successes are not used
-    bool operator<(ConstraintScore const& e) const;
+    bool operator<(Score const& e) const;
 
     //! \brief Equality checking
-    bool operator==(ConstraintScore const& e) const;
+    bool operator==(Score const& e) const;
 
     virtual ostream& _write(ostream& os) const;
   private:
@@ -72,21 +72,21 @@ class ConstraintScore : public WritableInterface {
     double _objective;
 };
 
-//! \brief The point + contraint score couple
-class PointConstraintScore : public WritableInterface {
+//! \brief The point + score couple
+class PointScore : public WritableInterface {
   public:
-    PointConstraintScore(ConfigurationSearchPoint const& p, ConstraintScore const& evaluation);
+    PointScore(ConfigurationSearchPoint const& p, Score const& score);
 
     ConfigurationSearchPoint const& point() const;
-    ConstraintScore const& evaluation() const;
+    Score const& score() const;
 
     //! \brief Ordering uses the score
-    bool operator<(PointConstraintScore const& s) const;
+    bool operator<(PointScore const& s) const;
 
     virtual ostream& _write(ostream& os) const;
   private:
     ConfigurationSearchPoint _point;
-    ConstraintScore _evaluation;
+    Score _score;
 };
 
 } // namespace pExplore

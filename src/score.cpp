@@ -34,26 +34,26 @@ namespace pExplore {
 using Utility::Set;
 using Utility::to_string;
 
-ConstraintScore::ConstraintScore(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective)
+Score::Score(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective)
         : _successes(successes), _hard_failures(hard_failures), _soft_failures(soft_failures), _objective(objective) { }
 
-Set<size_t> const& ConstraintScore::successes() const {
+Set<size_t> const& Score::successes() const {
     return _successes;
 }
 
-Set<size_t> const& ConstraintScore::hard_failures() const {
+Set<size_t> const& Score::hard_failures() const {
     return _hard_failures;
 }
 
-Set<size_t> const& ConstraintScore::soft_failures() const {
+Set<size_t> const& Score::soft_failures() const {
     return _soft_failures;
 }
 
-double ConstraintScore::objective() const {
+double Score::objective() const {
     return _objective;
 }
 
-bool ConstraintScore::operator<(ConstraintScore const& e) const {
+bool Score::operator<(Score const& e) const {
     if (_hard_failures < e.hard_failures())
         return true;
     else if (_hard_failures > e.hard_failures())
@@ -65,31 +65,31 @@ bool ConstraintScore::operator<(ConstraintScore const& e) const {
     else return _objective < e.objective();
 }
 
-bool ConstraintScore::operator==(ConstraintScore const& e) const {
+bool Score::operator==(Score const& e) const {
     return _successes == e.successes() and _hard_failures == e.hard_failures() and _soft_failures == e.soft_failures() and _objective == e.objective();
 }
 
-ostream& ConstraintScore::_write(ostream& os) const {
+ostream& Score::_write(ostream& os) const {
     return os << "{ hard_failures " << hard_failures() << ", soft_failures " << soft_failures() << ", objective " << objective() << "}";
 }
 
-PointConstraintScore::PointConstraintScore(ConfigurationSearchPoint const& p, ConstraintScore const& evaluation)
-           : _point(p), _evaluation(evaluation) { }
+PointScore::PointScore(ConfigurationSearchPoint const& p, Score const& score)
+           : _point(p), _score(score) { }
 
-ConfigurationSearchPoint const& PointConstraintScore::point() const {
+ConfigurationSearchPoint const& PointScore::point() const {
     return _point;
 }
 
-ConstraintScore const& PointConstraintScore::evaluation() const {
-    return _evaluation;
+Score const& PointScore::score() const {
+    return _score;
 }
 
-bool PointConstraintScore::operator<(PointConstraintScore const& e) const {
-    if (_evaluation == e.evaluation()) return _point < e._point;
-    return _evaluation < e.evaluation();
+bool PointScore::operator<(PointScore const& e) const {
+    if (_score == e.score()) return _point < e._point;
+    return _score < e.score();
 }
 
-ostream& PointConstraintScore::_write(ostream& os) const {
-    return os << "{" << _point << ": " << _evaluation << "}";
+ostream& PointScore::_write(ostream& os) const {
+    return os << "{" << _point << ": " << _score << "}";
 }
 } // namespace pExplore

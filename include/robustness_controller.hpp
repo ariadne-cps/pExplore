@@ -30,8 +30,8 @@
  *  \brief Class for controllers for the robustness of a constraint.
  */
 
-#ifndef PEXPLORE_EVALUATION_CONTROLLER
-#define PEXPLORE_EVALUATION_CONTROLLER
+#ifndef PEXPLORE_ROBUSTNESS_CONTROLLER
+#define PEXPLORE_ROBUSTNESS_CONTROLLER
 
 #include <functional>
 
@@ -89,4 +89,4 @@ template<class R> class TimeProgressLinearRobustnessController : public Robustne
 
 } // namespace pExplore
 
-#endif // PEXPLORE_EVALUATION_CONTROLLER
+#endif // PEXPLORE_ROBUSTNESS_CONTROLLER

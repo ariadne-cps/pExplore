@@ -45,7 +45,7 @@ using ProNest::ConfigurationSearchPoint;
 using Utility::List;
 using Utility::Set;
 
-class PointConstraintScore;
+class PointScore;
 
 //! \brief The base for parameter search tasks
 //! \details Useful to streamline task construction
@@ -62,8 +62,8 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
     void update_constraint_set(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input,output); }
 
-    Set<PointConstraintScore> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override {
-        Set<PointConstraintScore> result;
+    Set<PointScore> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override {
+        Set<PointScore> result;
         for (auto const& entry : data) {
             result.insert(_constraint_set.evaluate(entry.first,input,entry.second));
         }

@@ -82,8 +82,8 @@ class TaskManager {
     void set_exploration(ExplorationInterface const& exploration);
 
     //! \brief The best points saved
-    List<PointConstraintScore> best_rankings() const;
-    void append_best_ranking(PointConstraintScore const& point);
+    List<PointScore> best_rankings() const;
+    void append_best_ranking(PointScore const& point);
     void clear_best_rankings();
 
     //! \brief Print best rankings in a .m file for plotting
@@ -97,7 +97,7 @@ class TaskManager {
     unsigned int _concurrency;
     std::shared_ptr<ExplorationInterface> _exploration;
     std::mutex _data_mutex;
-    List<PointConstraintScore> _best_rankings;
+    List<PointScore> _best_rankings;
 };
 
 } // namespace pExplore
