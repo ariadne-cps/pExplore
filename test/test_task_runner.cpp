@@ -43,6 +43,18 @@ using namespace pExplore;
 
 class A;
 
+bool equality_check(List<double> const& values) {
+    auto result = true;
+    auto reference = values.at(0);
+    for (auto const& v : values) {
+        if (v != reference) {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
 enum class LevelOptions { LOW, MEDIUM, HIGH };
 std::ostream& operator<<(std::ostream& os, const LevelOptions level) {
     switch(level) {
@@ -188,17 +200,14 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(ca);
         UTILITY_TEST_PRINT(search_space);
 
-        auto maximum_concurrency = TaskManager::instance().maximum_concurrency();
-
-        UTILITY_TEST_PRINT(maximum_concurrency)
-        TaskManager::instance().set_concurrency(maximum_concurrency);
-
         return A(ca);
     }
 
   public:
 
     void test_failure() {
+
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 12.0;
@@ -210,6 +219,8 @@ class TestTaskRunner {
 
     void test_success() {
 
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+
         auto a = _get_runnable();
         double offset = 8.0;
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
@@ -219,14 +230,37 @@ class TestTaskRunner {
         UTILITY_TEST_PRINT(result)
     }
 
-    void test_no_constraining() {
+    void test_no_concurrency() {
+
+        TaskManager::instance().set_concurrency(1);
 
         auto a = _get_runnable();
+        double offset = 8.0;
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
+        a.set_constraining({constraint});
+
         auto result = a.execute();
         UTILITY_TEST_PRINT(result)
+        
+        auto all_values_equal = equality_check(result);
+        UTILITY_TEST_ASSERT(all_values_equal)
+    }
+
+    void test_no_constraining() {
+
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+
+        auto a = _get_runnable();
+        List<double> result = a.execute();
+        UTILITY_TEST_PRINT(result)
+
+        auto all_values_equal = equality_check(result);
+        UTILITY_TEST_ASSERT(all_values_equal)
     }
 
     void test_time_progress_linear_controller() {
+
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
@@ -242,6 +276,7 @@ class TestTaskRunner {
     void test() {
         UTILITY_TEST_CALL(test_failure())
         UTILITY_TEST_CALL(test_success())
+        UTILITY_TEST_CALL(test_no_concurrency())
         UTILITY_TEST_CALL(test_no_constraining())
         UTILITY_TEST_CALL(test_time_progress_linear_controller())
     }
