@@ -75,7 +75,7 @@ List<int> TaskManager::optimal_point() const {
 
         List<Map<int,size_t>> frequencies;
         for (size_t i=0; i<dimension; ++i) frequencies.push_back(Map<int,size_t>());
-        for (auto ranking : _best_rankings) {
+        for (auto const& ranking : _best_rankings) {
             auto coordinates = ranking.point().coordinates();
             for (size_t i=0; i<dimension; ++i) {
                 auto iter = frequencies[i].find(coordinates[i]);
@@ -89,7 +89,7 @@ List<int> TaskManager::optimal_point() const {
             int best_value = freq_it->first;
             size_t best_frequency = freq_it->second;
             ++freq_it;
-            while(freq_it != frequencies[i].end()) {
+            while (freq_it != frequencies[i].end()) {
                 if (freq_it->second >best_frequency) {
                     best_value = freq_it->first;
                     best_frequency = freq_it->second;

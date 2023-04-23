@@ -91,7 +91,7 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
     typedef typename TaskRunnerInterface<C>::ConfigurationType ConfigurationType;
 
     TaskRunnerBase(ConfigurationType const& configuration)
-        : _task(TaskType()), _configuration(configuration) { }
+        : _task({}), _configuration(configuration) { }
 
     TaskType& task() override { return _task; };
     TaskType const& task() const override { return _task; };
@@ -108,7 +108,7 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
 template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const& configuration) : TaskRunnerBase<C>(configuration) { }
 
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
-    OutputType result = this->_task.run(input,this->configuration());
+    auto result = this->_task.run(input,this->configuration());
 
     this->_task.update_constraint_set(input,result);
 
@@ -128,7 +128,7 @@ template<class C> void DetachedRunner<C>::_loop() {
         _input_availability.wait(locker, [this]() { return _input_buffer.size()>0 || _terminate; });
         if (_terminate) break;
         auto input = _input_buffer.pull();
-        OutputType output = this->_task.run(input,this->configuration());
+        auto output = this->_task.run(input,this->configuration());
         _output_buffer.push(output);
         _output_availability.notify_all();
     }
@@ -137,7 +137,7 @@ template<class C> void DetachedRunner<C>::_loop() {
 template<class C> DetachedRunner<C>::DetachedRunner(ConfigurationType const& configuration)
         : TaskRunnerBase<C>(configuration),
           _thread([this]() { _loop(); }, this->_task.name(), false),
-          _input_buffer(InputBufferType(1)),_output_buffer(OutputBufferType(1)),
+          _input_buffer({1}),_output_buffer({1}),
           _last_used_input(1), _active(false), _terminate(false) { }
 
 template<class C> DetachedRunner<C>::~DetachedRunner() {
@@ -179,7 +179,7 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         try {
             auto output = this->_task.run(pkg.first,cfg);
             auto point_score = this->_task.constraint_set().evaluate(pkg.second,pkg.first,output);
-            _output_buffer.push(OutputBufferContentType(output,point_score));
+            _output_buffer.push({output,point_score});
         } catch (std::exception& e) {
             ++_failures;
             CONCLOG_PRINTLN("task failed: " << e.what());
@@ -190,8 +190,8 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
 
 template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, unsigned int concurrency)
         : TaskRunnerBase<C>(configuration), _concurrency(concurrency),
-          _failures(0), _last_used_input(1), _points(), _exploration(exploration.clone()),
-          _input_buffer(InputBufferType(concurrency)),_output_buffer(OutputBufferType(concurrency)),
+          _failures(0), _last_used_input({1}), _points(), _exploration(exploration.clone()),
+          _input_buffer({concurrency}),_output_buffer({concurrency}),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
         _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task.name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
@@ -206,8 +206,8 @@ template<class C> void ParameterSearchRunner<C>::push(InputType const& input) {
     if (not _active) {
         _active = true;
         auto shifted = this->_configuration.search_space().initial_point().make_random_shifted(_concurrency);
-        for (auto point : shifted) _points.push(point);
-        for (auto thread : _threads) thread->activate();
+        for (auto const& point : shifted) _points.push(point);
+        for (auto& thread : _threads) thread->activate();
     }
     for (size_t i=0; i<_concurrency; ++i) {
         _input_buffer.push({input,_points.front()});
@@ -223,7 +223,7 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     CONCLOG_PRINTLN("received " << _concurrency-_failures << " completed tasks");
     _failures=0;
 
-    InputType input = _last_used_input.pull();
+    auto input = _last_used_input.pull();
     Map<ConfigurationSearchPoint,OutputType> point_outputs;
     Set<PointScore> point_scores;
     while (_output_buffer.size() > 0) {
@@ -232,8 +232,8 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
         point_outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(data.point_score().point(),data.output()));
     }
 
-    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(point_scores);
-    for (auto p : new_points) _points.push(p);
+    auto new_points = _exploration->next_points_from(point_scores);
+    for (auto const& p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
     auto best_point_score = *point_scores.begin();
