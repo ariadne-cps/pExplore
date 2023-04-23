@@ -112,7 +112,7 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
     typedef typename TaskRunnerBase<C>::OutputType OutputType;
     typedef typename TaskRunnerBase<C>::ConfigurationType ConfigurationType;
     typedef Pair<InputType,ConfigurationSearchPoint> InputBufferContentType;
-    typedef OutputPointScore<OutputType> OutputBufferContentType;
+    typedef OutputPointScore<C> OutputBufferContentType;
     typedef Buffer<InputBufferContentType> InputBufferType;
     typedef Buffer<OutputBufferContentType> OutputBufferType;
   protected:

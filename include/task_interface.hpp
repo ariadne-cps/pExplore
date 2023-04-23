@@ -74,8 +74,6 @@ class TaskInterface {
 
     //! \brief The task to be performed, taking \a in as input and \a cfg as a configuration of the parameters
     virtual OutputType run(InputType const& in, ConfigurationType const& cfg) const = 0;
-    //! \brief Evaluate, using the constraints, all the point-output pairs in \a data, possibly using the input \a in
-    virtual Set<PointScore> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& in) const = 0;
 };
 
 } // namespace pExplore

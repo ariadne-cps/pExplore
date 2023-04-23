@@ -45,6 +45,24 @@ namespace pExplore {
 
 using Utility::to_string;
 
+template<class R> class OutputPointScore {
+public:
+    typedef TaskOutput<R> O;
+public:
+    OutputPointScore(O const& output, PointScore const& point_score) : _output(output), _point_score(point_score) { }
+    OutputPointScore(OutputPointScore<R> const& p) : _output(p._output), _point_score(p._point_score) { }
+    OutputPointScore& operator=(OutputPointScore<R> const& p) {
+        _output = p._output;
+        _point_score = p._point_score;
+        return *this;
+    };
+    O const& output() const { return _output; }
+    PointScore const& point_score() const { return _point_score; }
+private:
+    O _output;
+    PointScore _point_score;
+};
+
 template<class C> TaskRunnable<C>::TaskRunnable(ConfigurationType const& configuration) : Configurable<C>(configuration) {
     TaskManager::instance().choose_runner_for(*this);
 }
@@ -150,22 +168,6 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     return result;
 }
 
-template<class O> class OutputPointScore {
-  public:
-    OutputPointScore(O const& output, ConfigurationSearchPoint const& point) : _output(output), _point(point) { }
-    OutputPointScore(OutputPointScore<O> const& p) : _output(p._output), _point(p._point) { }
-    OutputPointScore& operator=(OutputPointScore<O> const& p) {
-        _output = p._output;
-        _point = p._point;
-        return *this;
-    };
-    O const& output() const { return _output; }
-    ConfigurationSearchPoint const& point() const { return _point; }
-  private:
-    O _output;
-    ConfigurationSearchPoint _point;
-};
-
 template<class C> void ParameterSearchRunner<C>::_loop() {
     while(true) {
         std::unique_lock<std::mutex> locker(_input_mutex);
@@ -176,7 +178,8 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
             auto output = this->_task.run(pkg.first,cfg);
-            _output_buffer.push(OutputBufferContentType(output,pkg.second));
+            auto point_score = this->_task.constraint_set().evaluate(pkg.second,pkg.first,output);
+            _output_buffer.push(OutputBufferContentType(output,point_score));
         } catch (std::exception& e) {
             ++_failures;
             CONCLOG_PRINTLN("task failed: " << e.what());
@@ -221,28 +224,29 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     _failures=0;
 
     InputType input = _last_used_input.pull();
-    Map<ConfigurationSearchPoint,OutputType> outputs;
+    Map<ConfigurationSearchPoint,OutputType> point_outputs;
+    Set<PointScore> point_scores;
     while (_output_buffer.size() > 0) {
-        auto io_data = _output_buffer.pull();
-        outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(io_data.point(),io_data.output()));
+        auto data = _output_buffer.pull();
+        point_scores.insert(data.point_score());
+        point_outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(data.point_score().point(),data.output()));
     }
-    auto scores = this->_task.evaluate(outputs, input);
-    CONCLOG_PRINTLN_VAR(scores);
 
-    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(scores);
+    Set<ConfigurationSearchPoint> new_points = _exploration->next_points_from(point_scores);
     for (auto p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
-    auto best = *scores.begin();
+    auto best_point_score = *point_scores.begin();
+    auto best_output = point_outputs.get(best_point_score.point());
 
-    this->_task.update_constraint_set(input,outputs.at(best.point()));
+    this->_task.update_constraint_set(input,best_output);
 
     if (this->_task.constraint_set().is_inactive())
         throw new NoActiveConstraintsException(this->_task.constraint_set().constraint_states());
 
-    TaskManager::instance().append_best_ranking(best);
+    TaskManager::instance().append_best_ranking(best_point_score);
 
-    return outputs.get(best.point());
+    return best_output;
 }
 
 } // namespace pExplore

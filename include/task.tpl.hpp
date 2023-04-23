@@ -62,14 +62,6 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     void set_constraint_set(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
     void update_constraint_set(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input,output); }
 
-    Set<PointScore> evaluate(Map<ConfigurationSearchPoint,OutputType> const& data, InputType const& input) const override {
-        Set<PointScore> result;
-        for (auto const& entry : data) {
-            result.insert(_constraint_set.evaluate(entry.first,input,entry.second));
-        }
-        return result;
-    }
-
   private:
     String const _name;
     ConstrainingSpecification<R> _constraint_set;
