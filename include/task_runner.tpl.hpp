@@ -99,7 +99,7 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
 
     virtual ~TaskRunnerBase() = default;
 
-  protected:
+  private:
 
     TaskType _task;
     ConfigurationType const _configuration;
@@ -108,9 +108,9 @@ template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {
 template<class C> SequentialRunner<C>::SequentialRunner(ConfigurationType const& configuration) : TaskRunnerBase<C>(configuration) { }
 
 template<class C> void SequentialRunner<C>::push(InputType const& input) {
-    auto result = this->_task.run(input,this->configuration());
+    auto result = this->task().run(input,this->configuration());
 
-    this->_task.update_constraining(input,result);
+    this->task().update_constraining(input,result);
 
     _last_output.reset(new OutputType(result));
 }
@@ -125,7 +125,7 @@ template<class C> void DetachedRunner<C>::_loop() {
         _input_availability.wait(locker, [this]() { return _input_buffer.size()>0 || _terminate; });
         if (_terminate) break;
         auto input = _input_buffer.pull();
-        auto output = this->_task.run(input,this->configuration());
+        auto output = this->task().run(input,this->configuration());
         _output_buffer.push(output);
         _output_availability.notify_all();
     }
@@ -133,7 +133,7 @@ template<class C> void DetachedRunner<C>::_loop() {
 
 template<class C> DetachedRunner<C>::DetachedRunner(ConfigurationType const& configuration)
         : TaskRunnerBase<C>(configuration),
-          _thread([this]() { _loop(); }, this->_task.name(), false),
+          _thread([this]() { _loop(); }, this->task().name(), false),
           _input_buffer({1}),_output_buffer({1}),
           _last_used_input(1), _active(false), _terminate(false) { }
 
@@ -157,7 +157,7 @@ template<class C> auto DetachedRunner<C>::pull() -> OutputType {
     _output_availability.wait(locker, [this]() { return _output_buffer.size()>0; });
     auto result = _output_buffer.pull();
 
-    this->_task.update_constraining(_last_used_input,result);
+    this->task().update_constraining(_last_used_input,result);
 
     return result;
 }
@@ -171,8 +171,8 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
         locker.unlock();
         auto cfg = make_singleton(this->configuration(),pkg.second);
         try {
-            auto output = this->_task.run(pkg.first,cfg);
-            auto point_score = this->_task.constraining().evaluate(pkg.second,pkg.first,output);
+            auto output = this->task().run(pkg.first,cfg);
+            auto point_score = this->task().constraining().evaluate(pkg.second,pkg.first,output);
             _output_buffer.push({output,point_score});
         } catch (std::exception& e) {
             ++_failures;
@@ -188,7 +188,7 @@ template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationT
           _input_buffer({concurrency}),_output_buffer({concurrency}),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
-        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->_task.name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
+        _threads.append(shared_ptr<Thread>(new Thread([this]() { _loop(); }, this->task().name() + (concurrency>=10 and i<10 ? "0" : "") + to_string(i), false)));
 }
 
 template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {
@@ -199,7 +199,7 @@ template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {
 template<class C> void ParameterSearchRunner<C>::push(InputType const& input) {
     if (not _active) {
         _active = true;
-        auto shifted = this->_configuration.search_space().initial_point().make_random_shifted(_concurrency);
+        auto shifted = this->configuration().search_space().initial_point().make_random_shifted(_concurrency);
         for (auto const& point : shifted) _points.push(point);
         for (auto& thread : _threads) thread->activate();
     }
@@ -233,10 +233,10 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     auto best_point_score = *point_scores.begin();
     auto best_output = point_outputs.get(best_point_score.point());
 
-    this->_task.update_constraining(input,best_output);
+    this->task().update_constraining(input,best_output);
 
-    if (this->_task.constraining().is_inactive())
-        throw new NoActiveConstraintsException(this->_task.constraining().states());
+    if (this->task().constraining().is_inactive())
+        throw new NoActiveConstraintsException(this->task().constraining().states());
 
     TaskManager::instance().append_best_ranking(best_point_score);
 

@@ -109,7 +109,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     //! \details The group_id from a deactivated constraint is used to deactivate other constraints
     void update_from(InputType const& input, OutputType const& output) {
         if (is_inactive()) return;
-        
+
         Set<size_t> group_ids_to_deactivate;
         auto eval = evaluate(input,output);
 
