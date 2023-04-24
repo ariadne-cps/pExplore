@@ -27,7 +27,7 @@
  */
 
 #include "conclog/logging.hpp"
-#include "utility/macros.hpp"
+#include "helper/macros.hpp"
 #include "task_manager.hpp"
 
 namespace pExplore {
@@ -45,7 +45,7 @@ unsigned int TaskManager::concurrency() const {
 }
 
 void TaskManager::set_concurrency(unsigned int value) {
-    UTILITY_PRECONDITION(value <= _maximum_concurrency and value > 0)
+    HELPER_PRECONDITION(value <= _maximum_concurrency and value > 0)
     std::lock_guard<std::mutex> lock(_data_mutex);
     _concurrency = value;
 }

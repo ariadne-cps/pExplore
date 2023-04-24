@@ -26,7 +26,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/test.hpp"
+#include "helper/test.hpp"
 #include "pronest/configuration_search_space.hpp"
 #include "score.hpp"
 
@@ -54,11 +54,11 @@ class TestScore {
             PointScore a3(point3, {{}, {}, {}, 3.0});
             PointScore a4(point4, {{}, {}, {}, -1.0});
 
-            UTILITY_TEST_ASSERT(a1 < a2)
-            UTILITY_TEST_ASSERT(a1 < a3)
-            UTILITY_TEST_ASSERT(a4 < a1)
-            UTILITY_TEST_ASSERT(a3 < a2)
-            UTILITY_TEST_ASSERT(a4 < a3)
+            HELPER_TEST_ASSERT(a1 < a2)
+            HELPER_TEST_ASSERT(a1 < a3)
+            HELPER_TEST_ASSERT(a4 < a1)
+            HELPER_TEST_ASSERT(a3 < a2)
+            HELPER_TEST_ASSERT(a4 < a3)
         }
 
         {
@@ -71,25 +71,25 @@ class TestScore {
             PointScore a7(point3, {{}, {}, {1, 2}, 4.0});
             PointScore a8(point3, {{}, {1, 2}, {}, 2.0});
 
-            UTILITY_TEST_ASSERT(a1 < a2)
-            UTILITY_TEST_ASSERT(a3 < a1)
-            UTILITY_TEST_ASSERT(a4 < a1)
-            UTILITY_TEST_ASSERT(a3 < a2)
-            UTILITY_TEST_ASSERT(a4 < a3)
-            UTILITY_TEST_ASSERT(a5 < a1)
-            UTILITY_TEST_ASSERT(a2 < a6)
-            UTILITY_TEST_ASSERT(a3 < a7)
-            UTILITY_TEST_ASSERT(a2 < a8)
+            HELPER_TEST_ASSERT(a1 < a2)
+            HELPER_TEST_ASSERT(a3 < a1)
+            HELPER_TEST_ASSERT(a4 < a1)
+            HELPER_TEST_ASSERT(a3 < a2)
+            HELPER_TEST_ASSERT(a4 < a3)
+            HELPER_TEST_ASSERT(a5 < a1)
+            HELPER_TEST_ASSERT(a2 < a6)
+            HELPER_TEST_ASSERT(a3 < a7)
+            HELPER_TEST_ASSERT(a2 < a8)
         }
 
     }
 
     static void test() {
-        UTILITY_TEST_CALL(test_ranking())
+        HELPER_TEST_CALL(test_ranking())
     }
 };
 
 int main() {
     TestScore::test();
-    return UTILITY_TEST_FAILURES;
+    return HELPER_TEST_FAILURES;
 }

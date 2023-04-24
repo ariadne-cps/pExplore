@@ -34,12 +34,12 @@
 #define PEXPLORE_EXPLORATION_HPP
 
 #include "pronest/configuration_search_point.hpp"
-#include "utility/container.hpp"
+#include "helper/container.hpp"
 #include "score.hpp"
 
 namespace pExplore {
 
-using Utility::Set;
+using Helper::Set;
 
 //! \brief Interface for search strategies
 class ExplorationInterface {

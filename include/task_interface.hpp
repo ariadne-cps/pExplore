@@ -34,18 +34,18 @@
 #define PEXPLORE_TASK_INTERFACE_HPP
 
 #include <chrono>
-#include "utility/container.hpp"
-#include "utility/tuple.hpp"
-#include "utility/string.hpp"
+#include "helper/container.hpp"
+#include "helper/tuple.hpp"
+#include "helper/string.hpp"
 #include "pronest/configuration_search_point.hpp"
 
 namespace pExplore {
 
-using Utility::String;
-using Utility::Set;
-using Utility::Pair;
-using Utility::Map;
-using Utility::List;
+using Helper::String;
+using Helper::Set;
+using Helper::Pair;
+using Helper::Map;
+using Helper::List;
 using ProNest::ConfigurationSearchPoint;
 using ProNest::Configuration;
 

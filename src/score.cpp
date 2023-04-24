@@ -26,13 +26,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/string.hpp"
+#include "helper/string.hpp"
 #include "score.hpp"
 
 namespace pExplore {
 
-using Utility::Set;
-using Utility::to_string;
+using Helper::Set;
+using Helper::to_string;
 
 Score::Score(Set<size_t> const& successes, Set<size_t> const& hard_failures, Set<size_t> const& soft_failures, double objective)
         : _successes(successes), _hard_failures(hard_failures), _soft_failures(soft_failures), _objective(objective) { }

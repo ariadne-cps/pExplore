@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/test.hpp"
-#include "utility/lazy.hpp"
+#include "helper/test.hpp"
+#include "helper/lazy.hpp"
 #include "pronest/searchable_configuration.hpp"
 #include "pronest/configuration_property.tpl.hpp"
 #include "pronest/configuration_search_space.hpp"
@@ -39,7 +39,7 @@
 
 using namespace std;
 using namespace ProNest;
-using namespace Utility;
+using namespace Helper;
 using namespace pExplore;
 
 class A;
@@ -62,7 +62,7 @@ std::ostream& operator<<(std::ostream& os, const LevelOptions level) {
         case LevelOptions::LOW: os << "LOW"; return os;
         case LevelOptions::MEDIUM: os << "MEDIUM"; return os;
         case LevelOptions::HIGH: os << "HIGH"; return os;
-        default: UTILITY_FAIL_MSG("Unhandled LevelOptions value")
+        default: HELPER_FAIL_MSG("Unhandled LevelOptions value")
     }
 }
 
@@ -211,8 +211,8 @@ class TestTaskRunner {
         ca.set_maximum_step_size(0.001,0.1);
         ca.set_level({LevelOptions::LOW,LevelOptions::MEDIUM});
         auto search_space = ca.search_space();
-        UTILITY_TEST_PRINT(ca)
-        UTILITY_TEST_PRINT(search_space)
+        HELPER_TEST_PRINT(ca)
+        HELPER_TEST_PRINT(search_space)
 
         return {ca};
     }
@@ -231,7 +231,7 @@ class TestTaskRunner {
                 .build();
         a.set_constraining({constraint});
 
-        UTILITY_TEST_FAIL(a.execute())
+        HELPER_TEST_FAIL(a.execute())
     }
 
     void test_success() {
@@ -246,7 +246,7 @@ class TestTaskRunner {
         a.set_constraining({constraint});
 
         auto result = a.execute();
-        UTILITY_TEST_PRINT(result)
+        HELPER_TEST_PRINT(result)
     }
 
     void test_uses_expensiveclass() {
@@ -261,7 +261,7 @@ class TestTaskRunner {
         a.set_constraining({constraint});
 
         auto result = a.execute();
-        UTILITY_TEST_PRINT(result)
+        HELPER_TEST_PRINT(result)
     }
 
     void test_no_concurrency() {
@@ -276,10 +276,10 @@ class TestTaskRunner {
         a.set_constraining({constraint});
 
         auto result = a.execute();
-        UTILITY_TEST_PRINT(result)
+        HELPER_TEST_PRINT(result)
         
         auto all_values_equal = equality_check(result);
-        UTILITY_TEST_ASSERT(all_values_equal)
+        HELPER_TEST_ASSERT(all_values_equal)
     }
 
     void test_no_constraining() {
@@ -288,10 +288,10 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         List<double> result = a.execute();
-        UTILITY_TEST_PRINT(result)
+        HELPER_TEST_PRINT(result)
 
         auto all_values_equal = equality_check(result);
-        UTILITY_TEST_ASSERT(all_values_equal)
+        HELPER_TEST_ASSERT(all_values_equal)
     }
 
     void test_time_progress_linear_controller() {
@@ -308,21 +308,21 @@ class TestTaskRunner {
         a.set_constraining({constraint});
 
         auto result = a.execute();
-        UTILITY_TEST_PRINT(result)
+        HELPER_TEST_PRINT(result)
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_failure())
-        UTILITY_TEST_CALL(test_success())
-        UTILITY_TEST_CALL(test_uses_expensiveclass())
-        UTILITY_TEST_CALL(test_no_concurrency())
-        UTILITY_TEST_CALL(test_no_constraining())
-        UTILITY_TEST_CALL(test_time_progress_linear_controller())
+        HELPER_TEST_CALL(test_failure())
+        HELPER_TEST_CALL(test_success())
+        HELPER_TEST_CALL(test_uses_expensiveclass())
+        HELPER_TEST_CALL(test_no_concurrency())
+        HELPER_TEST_CALL(test_no_constraining())
+        HELPER_TEST_CALL(test_time_progress_linear_controller())
     }
 };
 
 int main() {
 
     TestTaskRunner().test();
-    return UTILITY_TEST_FAILURES;
+    return HELPER_TEST_FAILURES;
 }

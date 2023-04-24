@@ -26,13 +26,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/test.hpp"
-#include "utility/array.hpp"
+#include "helper/test.hpp"
+#include "helper/array.hpp"
 #include "constraint.hpp"
 #include "task_runner_interface.hpp"
 
 using namespace pExplore;
-using namespace Utility;
+using namespace Helper;
 
 class TestRunnable : public TaskRunnable<TestRunnable> { };
 typedef TestRunnable R;
@@ -60,12 +60,12 @@ class TestConstraint {
         auto input = I(2,{1,2});
         auto output = O(7);
         auto robustness = c.robustness(input, output, false);
-        UTILITY_TEST_PRINT(c)
-        UTILITY_TEST_EQUALS(c.group_id(),0)
-        UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::NONE)
-        UTILITY_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::NONE)
-        UTILITY_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::NONE)
-        UTILITY_TEST_EQUALS(robustness,0.0)
+        HELPER_TEST_PRINT(c)
+        HELPER_TEST_EQUALS(c.group_id(),0)
+        HELPER_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::NONE)
+        HELPER_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::NONE)
+        HELPER_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::NONE)
+        HELPER_TEST_EQUALS(robustness,0.0)
     }
 
     void test_create_filled_constraint() {
@@ -79,21 +79,21 @@ class TestConstraint {
         auto input = I(2,{1,2});
         auto output = O(7);
         auto robustness = c.robustness(input, output, false);
-        UTILITY_TEST_PRINT(c)
-        UTILITY_TEST_EQUALS(c.group_id(),1)
-        UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::DEACTIVATE)
-        UTILITY_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::SOFT)
-        UTILITY_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::SIGNED)
-        UTILITY_TEST_EQUALS(robustness,9)
+        HELPER_TEST_PRINT(c)
+        HELPER_TEST_EQUALS(c.group_id(),1)
+        HELPER_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::DEACTIVATE)
+        HELPER_TEST_EQUALS(c.failure_kind(), ConstraintFailureKind::SOFT)
+        HELPER_TEST_EQUALS(c.objective_impact(), ConstraintObjectiveImpact::SIGNED)
+        HELPER_TEST_EQUALS(robustness,9)
     }
 
     void test() {
-        UTILITY_TEST_CALL(test_create_empty_constraint())
-        UTILITY_TEST_CALL(test_create_filled_constraint())
+        HELPER_TEST_CALL(test_create_empty_constraint())
+        HELPER_TEST_CALL(test_create_filled_constraint())
     }
 };
 
 int main() {
     TestConstraint().test();
-    return UTILITY_TEST_FAILURES;
+    return HELPER_TEST_FAILURES;
 }

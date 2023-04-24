@@ -38,7 +38,7 @@
 #include "pronest/configuration_search_point.hpp"
 #include "pronest/configuration_search_space.hpp"
 #include "pronest/configuration_property.tpl.hpp"
-#include "utility/container.hpp"
+#include "helper/container.hpp"
 #include "task_runner_interface.hpp"
 #include "score.hpp"
 #include "exploration.hpp"
@@ -47,7 +47,7 @@ namespace pExplore {
 
 using BetterThreads::Buffer;
 using BetterThreads::Thread;
-using Utility::List;
+using Helper::List;
 using std::shared_ptr;
 
 

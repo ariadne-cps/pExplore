@@ -34,7 +34,7 @@
 #define PEXPLORE_TASK_RUNNER_TPL_HPP
 
 #include "pronest/configurable.tpl.hpp"
-#include "utility/string.hpp"
+#include "helper/string.hpp"
 #include "task.tpl.hpp"
 #include "task_runner.hpp"
 #include "task_interface.hpp"
@@ -43,7 +43,7 @@
 
 namespace pExplore {
 
-using Utility::to_string;
+using Helper::to_string;
 
 template<class R> class OutputPointScore {
 public:
@@ -221,21 +221,21 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
     Map<ConfigurationSearchPoint,OutputType> point_outputs;
     Set<PointScore> point_scores;
     Set<ConfigurationSearchPoint> points;
-    UTILITY_ASSERT_EQUAL(_output_buffer.size(),_concurrency)
+    HELPER_ASSERT_EQUAL(_output_buffer.size(),_concurrency)
     while (_output_buffer.size() > 0) {
         auto data = _output_buffer.pull();
         point_scores.insert(data.point_score());
         points.insert(data.point_score().point());
         point_outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(data.point_score().point(),data.output()));
     }
-    UTILITY_ASSERT_EQUAL(points.size(),_concurrency)
-    UTILITY_ASSERT_EQUAL(point_scores.size(),_concurrency)
+    HELPER_ASSERT_EQUAL(points.size(),_concurrency)
+    HELPER_ASSERT_EQUAL(point_scores.size(),_concurrency)
 
     auto new_points = _exploration->next_points_from(point_scores);
     for (auto const& p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
-    UTILITY_ASSERT_EQUAL(_points.size(),_concurrency)
+    HELPER_ASSERT_EQUAL(_points.size(),_concurrency)
 
     auto best_point_score = *point_scores.begin();
     auto best_output = point_outputs.get(best_point_score.point());

@@ -33,8 +33,8 @@
 #ifndef PEXPLORE_TASK_TPL_HPP
 #define PEXPLORE_TASK_TPL_HPP
 
-#include "utility/container.hpp"
-#include "utility/string.hpp"
+#include "helper/container.hpp"
+#include "helper/string.hpp"
 #include "pronest/configuration_search_point.hpp"
 #include "task_interface.hpp"
 #include "constraining_specification.hpp"
@@ -42,8 +42,8 @@
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
-using Utility::List;
-using Utility::Set;
+using Helper::List;
+using Helper::Set;
 
 class PointScore;
 

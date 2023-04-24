@@ -35,20 +35,20 @@
 
 #include <functional>
 #include <chrono>
-#include "utility/container.hpp"
-#include "utility/string.hpp"
-#include "utility/writable.hpp"
-#include "utility/macros.hpp"
+#include "helper/container.hpp"
+#include "helper/string.hpp"
+#include "helper/writable.hpp"
+#include "helper/macros.hpp"
 #include "pronest/configuration_search_point.hpp"
 #include "robustness_controller.hpp"
 #include "score.hpp"
 
 namespace pExplore {
 
-using Utility::WritableInterface;
-using Utility::String;
-using Utility::Set;
-using Utility::Map;
+using Helper::WritableInterface;
+using Helper::String;
+using Helper::Set;
+using Helper::Map;
 using ProNest::ConfigurationSearchPoint;
 using std::ostream;
 using std::shared_ptr;
@@ -64,7 +64,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintSuccessAction 
     switch (success_action) {
         case ConstraintSuccessAction::NONE: os << "NONE"; break;
         case ConstraintSuccessAction::DEACTIVATE: os << "DEACTIVATE"; break;
-        default: UTILITY_FAIL_MSG("Unhandled ConstraintSuccessAction value.");
+        default: HELPER_FAIL_MSG("Unhandled ConstraintSuccessAction value.");
     }
     return os;
 }
@@ -79,7 +79,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintFailureKind fa
         case ConstraintFailureKind::NONE: os << "NONE"; break;
         case ConstraintFailureKind::SOFT: os << "SOFT"; break;
         case ConstraintFailureKind::HARD: os << "HARD"; break;
-        default: UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind value.");
+        default: HELPER_FAIL_MSG("Unhandled ConstraintFailureKind value.");
     }
     return os;
 }
@@ -94,7 +94,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstraintObjectiveImpac
         case ConstraintObjectiveImpact::NONE: os << "NONE"; break;
         case ConstraintObjectiveImpact::SIGNED: os << "SIGNED"; break;
         case ConstraintObjectiveImpact::UNSIGNED: os << "UNSIGNED"; break;
-        default: UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact value.");
+        default: HELPER_FAIL_MSG("Unhandled ConstraintObjectiveImpact value.");
     }
     return os;
 }
@@ -183,8 +183,8 @@ template<class R> class ConstraintState : public WritableInterface {
     //! \details Constraints with the same group_id as others may be deactivated as a result of success/failure on those,
     //! even if this one has no failure or success
     void deactivate() { _active = false; }
-    void set_success() { UTILITY_PRECONDITION(not _failure) _success = true; }
-    void set_failure() { UTILITY_PRECONDITION(not _success) _failure = true; }
+    void set_success() { HELPER_PRECONDITION(not _failure) _success = true; }
+    void set_failure() { HELPER_PRECONDITION(not _success) _failure = true; }
 
     ostream& _write(ostream& os) const override {
         return os << "{'" << _constraint << ", active = " << _active << ", has_succeeded =" << _success << ", has_failed=" << _failure << "}";

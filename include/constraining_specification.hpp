@@ -33,14 +33,14 @@
 #ifndef PEXPLORE_CONSTRAINING_SPECIFICATION
 #define PEXPLORE_CONSTRAINING_SPECIFICATION
 
-#include "utility/container.hpp"
-#include "utility/writable.hpp"
+#include "helper/container.hpp"
+#include "helper/writable.hpp"
 #include "constraint.hpp"
 
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
-using Utility::WritableInterface;
+using Helper::WritableInterface;
 using std::to_string;
 using std::ostream;
 using std::min;
@@ -63,7 +63,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     }
 
     Score evaluate(InputType const& input, OutputType const& output, bool update_controller) const {
-        UTILITY_PRECONDITION(not has_no_active_constraints())
+        HELPER_PRECONDITION(not has_no_active_constraints())
         double objective = 0.0;
         Set<size_t> successes;
         Set<size_t> hard_failures;
@@ -82,7 +82,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
                         break;
                     case ConstraintObjectiveImpact::NONE :
                         break;
-                    default : UTILITY_FAIL_MSG("Unhandled ConstraintObjectiveImpact for score evaluation.")
+                    default : HELPER_FAIL_MSG("Unhandled ConstraintObjectiveImpact for score evaluation.")
                 }
                 if (robustness < 0) {
                     switch (c.failure_kind()) {
@@ -94,7 +94,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
                             break;
                         case ConstraintFailureKind::NONE :
                             break;
-                        default : UTILITY_FAIL_MSG("Unhandled ConstraintFailureKind for score evaluation.")
+                        default : HELPER_FAIL_MSG("Unhandled ConstraintFailureKind for score evaluation.")
                     }
                 } else {
                     successes.insert(i);

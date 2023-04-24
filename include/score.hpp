@@ -33,15 +33,15 @@
 #ifndef PEXPLORE_SCORE
 #define PEXPLORE_SCORE
 
-#include "utility/container.hpp"
-#include "utility/writable.hpp"
+#include "helper/container.hpp"
+#include "helper/writable.hpp"
 #include "pronest/configuration_search_point.hpp"
 
 namespace pExplore {
 
 using ProNest::ConfigurationSearchPoint;
-using Utility::WritableInterface;
-using Utility::Set;
+using Helper::WritableInterface;
+using Helper::Set;
 using std::to_string;
 using std::ostream;
 using std::size_t;
