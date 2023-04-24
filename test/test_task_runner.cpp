@@ -99,7 +99,6 @@ using DoubleConfigurationProperty = RangeConfigurationProperty<double>;
 using IntegerConfigurationProperty = RangeConfigurationProperty<int>;
 using LevelOptionsConfigurationProperty = EnumConfigurationProperty<LevelOptions>;
 using TestConfigurableConfigurationProperty = InterfaceListConfigurationProperty<TestConfigurableInterface>;
-using Log10Converter = Log10SearchSpaceConverter<double>;
 using Log2Converter = Log2SearchSpaceConverter<double>;
 
 template<> struct Configuration<A> : public SearchableConfiguration {
@@ -166,7 +165,7 @@ template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
             default : level_value = 0;
         }
         double next_step = in.step+1;
-        return {in.x + level_value - cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0),
+        return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0),
                 next_step,
                 Lazy<ExpensiveClass>([next_step](){ return new ExpensiveClass(next_step); })};
     }
@@ -212,10 +211,10 @@ class TestTaskRunner {
         ca.set_maximum_step_size(0.001,0.1);
         ca.set_level({LevelOptions::LOW,LevelOptions::MEDIUM});
         auto search_space = ca.search_space();
-        UTILITY_TEST_PRINT(ca);
-        UTILITY_TEST_PRINT(search_space);
+        UTILITY_TEST_PRINT(ca)
+        UTILITY_TEST_PRINT(search_space)
 
-        return A(ca);
+        return {ca};
     }
 
   public:
@@ -297,7 +296,7 @@ class TestTaskRunner {
 
     void test_time_progress_linear_controller() {
 
-        TaskManager::instance().set_concurrency(2);//TaskManager::instance().maximum_concurrency());
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
