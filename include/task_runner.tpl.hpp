@@ -235,7 +235,7 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
 
     this->task().update_constraining(input,best_output);
 
-    if (this->task().constraining().is_inactive())
+    if (this->task().constraining().has_no_active_constraints())
         throw new NoActiveConstraintsException(this->task().constraining().states());
 
     TaskManager::instance().append_best_ranking(best_point_score);

@@ -63,7 +63,7 @@ class TaskManager {
     template<class T> void choose_runner_for(TaskRunnable<T>& runnable, ConstrainingSpecification<T> const& constraining) const {
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
-        if (_concurrency > 1 and not constraining.is_inactive() and not cfg.is_singleton())
+        if (_concurrency > 1 and not constraining.has_no_active_constraints() and not cfg.is_singleton())
             runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(_concurrency,static_cast<unsigned int>(cfg.search_space().total_points()))));
         else if (not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();

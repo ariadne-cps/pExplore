@@ -63,14 +63,14 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     }
 
     Score evaluate(InputType const& input, OutputType const& output) const {
-        UTILITY_PRECONDITION(_num_active_constraints > 0)
+        UTILITY_PRECONDITION(not has_no_active_constraints())
         double objective = 0.0;
         Set<size_t> successes;
         Set<size_t> hard_failures;
         Set<size_t> soft_failures;
         for (size_t i=0; i < _states.size(); ++i) {
             auto const& s = _states.at(i);
-            if (not s.has_succeeded() and not s.has_failed()) {
+            if (s.is_active()) {
                 auto const& c = s.constraint();
                 auto robustness = c.robustness(input,output);
                 switch (c.objective_impact()) {
@@ -108,7 +108,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     //! and if necessary deactivating the constraint
     //! \details The group_id from a deactivated constraint is used to deactivate other constraints
     void update_from(InputType const& input, OutputType const& output) {
-        if (is_inactive()) return;
+        if (has_no_active_constraints()) return;
 
         Set<size_t> group_ids_to_deactivate;
         auto eval = evaluate(input,output);
@@ -135,7 +135,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         }
     }
 
-    bool is_inactive() const { return _num_active_constraints == 0; }
+    bool has_no_active_constraints() const { return _num_active_constraints == 0; }
 
     List<ConstraintState<R>> const& states() const {
         return _states;
