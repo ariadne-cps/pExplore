@@ -62,6 +62,7 @@ class Score : public WritableInterface {
     bool operator<(Score const& e) const;
 
     //! \brief Equality checking
+    //! \details Successes are not used
     bool operator==(Score const& e) const;
 
     virtual ostream& _write(ostream& os) const;

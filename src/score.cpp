@@ -66,7 +66,7 @@ bool Score::operator<(Score const& e) const {
 }
 
 bool Score::operator==(Score const& e) const {
-    return _successes == e.successes() and _hard_failures == e.hard_failures() and _soft_failures == e.soft_failures() and _objective == e.objective();
+    return _hard_failures == e.hard_failures() and _soft_failures == e.soft_failures() and _objective == e.objective();
 }
 
 ostream& Score::_write(ostream& os) const {
