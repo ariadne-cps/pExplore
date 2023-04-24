@@ -85,8 +85,11 @@ Score const& PointScore::score() const {
 }
 
 bool PointScore::operator<(PointScore const& e) const {
-    if (_score == e.score()) return _point < e._point;
-    return _score < e.score();
+    if (_score == e.score()) {
+        return _point < e._point;
+    } else {
+        return _score < e.score();
+    }
 }
 
 ostream& PointScore::_write(ostream& os) const {

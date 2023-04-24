@@ -59,10 +59,10 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
     ConstrainingSpecification() : ConstrainingSpecification(List<Constraint<R>>()) { }
 
     PointScore evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
-        return {point, evaluate(input,output)};
+        return {point, evaluate(input,output,false)};
     }
 
-    Score evaluate(InputType const& input, OutputType const& output) const {
+    Score evaluate(InputType const& input, OutputType const& output, bool update_controller) const {
         UTILITY_PRECONDITION(not has_no_active_constraints())
         double objective = 0.0;
         Set<size_t> successes;
@@ -72,7 +72,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
             auto const& s = _states.at(i);
             if (s.is_active()) {
                 auto const& c = s.constraint();
-                auto robustness = c.robustness(input,output);
+                auto robustness = c.robustness(input,output,update_controller);
                 switch (c.objective_impact()) {
                     case ConstraintObjectiveImpact::UNSIGNED :
                         objective += abs(robustness);
@@ -111,24 +111,25 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         if (has_no_active_constraints()) return;
 
         Set<size_t> group_ids_to_deactivate;
-        auto eval = evaluate(input,output);
+        auto eval = evaluate(input,output,true);
 
         for (size_t i=0; i < _states.size(); ++i) {
             auto& s = _states.at(i);
+            auto& c = s.constraint();
 
             if (eval.successes().contains(i)) {
                 s.set_success();
-                if (s.constraint().success_action() == ConstraintSuccessAction::DEACTIVATE) {
-                    group_ids_to_deactivate.insert(s.constraint().group_id());
+                if (c.success_action() == ConstraintSuccessAction::DEACTIVATE) {
+                    group_ids_to_deactivate.insert(c.group_id());
                 }
             }
 
             if (eval.hard_failures().contains(i)) {
                 s.set_failure();
-                group_ids_to_deactivate.insert(s.constraint().group_id());
+                group_ids_to_deactivate.insert(c.group_id());
             }
 
-            if (group_ids_to_deactivate.contains(s.constraint().group_id())) {
+            if (group_ids_to_deactivate.contains(c.group_id())) {
                 s.deactivate();
                 --_num_active_constraints;
             }

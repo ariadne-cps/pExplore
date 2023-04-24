@@ -123,8 +123,8 @@ template<class R> class Constraint : public WritableInterface {
 
     RobustnessControllerInterface<R> const& controller() const { return *_controller_ptr; }
 
-    //! \brief Get the degree of satisfaction of the constraint given an \a input and \a output
-    double robustness(InputType const& input, OutputType const& output) const { return _controller_ptr->apply(_func(input, output),input,output); }
+    //! \brief Get the degree of satisfaction of the constraint given an \a input and \a output, optionally updating the robustness controller with \a update
+    double robustness(InputType const& input, OutputType const& output, bool update_controller) const { return _controller_ptr->apply(_func(input, output),input,output,update_controller); }
 
     ostream& _write(ostream& os) const override {
         return os << "{'" << _name << "', group_id=" << _group_id << ", success_action=" << _success_action << ", failure_kind=" << _failure_kind << ", objective_impact=" << _objective_impact << "}";

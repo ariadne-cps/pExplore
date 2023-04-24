@@ -27,6 +27,7 @@
  */
 
 #include "utility/test.hpp"
+#include "utility/lazy.hpp"
 #include "pronest/searchable_configuration.hpp"
 #include "pronest/configuration_property.tpl.hpp"
 #include "pronest/configuration_search_space.hpp"
@@ -134,6 +135,13 @@ template<> struct Configuration<A> : public SearchableConfiguration {
 
 }
 
+struct ExpensiveClass {
+    ExpensiveClass(double val) : _value(val) { }
+    double value() const { return _value; }
+  private:
+    double _value;
+};
+
 namespace pExplore {
 
 template<> struct TaskInput<A> {
@@ -143,9 +151,10 @@ template<> struct TaskInput<A> {
 };
 
 template<> struct TaskOutput<A> {
-    TaskOutput(double const& y_, double const& step_) : y(y_), step(step_) { }
+    TaskOutput(double const& y_, double const& step_, Lazy<ExpensiveClass> const& expensive_) : y(y_), step(step_), expensive(expensive_) { }
     double const y;
     double const step;
+    Lazy<ExpensiveClass> expensive;
 };
 
 template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
@@ -156,7 +165,10 @@ template<> struct Task<A> final: public ParameterSearchTaskBase<A> {
             case LevelOptions::MEDIUM : level_value = 1; break;
             default : level_value = 0;
         }
-        return {in.x + level_value + cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0), in.step+1};
+        double next_step = in.step+1;
+        return {in.x + level_value - cfg.maximum_order() + cfg.maximum_step_size() + (cfg.use_reconditioning() ? 1.0 : 0.0) + (dynamic_cast<TestConfigurable const&>(cfg.test_configurable()).configuration().use_something() ? 1.0 : 0.0),
+                next_step,
+                Lazy<ExpensiveClass>([next_step](){ return new ExpensiveClass(next_step); })};
     }
 };
 
@@ -169,9 +181,12 @@ public:
 
     List<double> execute() {
         List<double> result;
+        double step = 0.0;
         for (size_t i=0; i<10; ++i) {
-            runner().push(TaskInput<A>(1.0,0.0));
-            result.push_back(runner().pull().y);
+            runner().push(TaskInput<A>(1.0,step));
+            auto output = runner().pull();
+            result.push_back(output.y);
+            step = output.step;
         }
         return result;
     }
@@ -211,7 +226,10 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         double offset = 12.0;
-        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; }).set_failure_kind(ConstraintFailureKind::HARD).build();
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return o.y - offset; })
+                .set_failure_kind(ConstraintFailureKind::HARD)
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
         a.set_constraining({constraint});
 
         UTILITY_TEST_FAIL(a.execute())
@@ -223,7 +241,24 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         double offset = 8.0;
-        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
+        a.set_constraining({constraint});
+
+        auto result = a.execute();
+        UTILITY_TEST_PRINT(result)
+    }
+
+    void test_uses_expensiveclass() {
+
+        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+
+        auto a = _get_runnable();
+        double offset = 8.0;
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset) + o.expensive().value(); })
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
         a.set_constraining({constraint});
 
         auto result = a.execute();
@@ -236,7 +271,9 @@ class TestTaskRunner {
 
         auto a = _get_runnable();
         double offset = 8.0;
-        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); }).build();
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
         a.set_constraining({constraint});
 
         auto result = a.execute();
@@ -260,13 +297,15 @@ class TestTaskRunner {
 
     void test_time_progress_linear_controller() {
 
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        TaskManager::instance().set_concurrency(2);//TaskManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
         double final_time = 10.0;
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
-                .set_controller(TimeProgressLinearRobustnessController<A>([](I const&, O const& o) { return o.step; },final_time)).build();
+                .set_controller(TimeProgressLinearRobustnessController<A>([](I const&, O const& o) { return o.step; },final_time))
+                .set_objective_impact(ConstraintObjectiveImpact::UNSIGNED)
+                .build();
         a.set_constraining({constraint});
 
         auto result = a.execute();
@@ -276,6 +315,7 @@ class TestTaskRunner {
     void test() {
         UTILITY_TEST_CALL(test_failure())
         UTILITY_TEST_CALL(test_success())
+        UTILITY_TEST_CALL(test_uses_expensiveclass())
         UTILITY_TEST_CALL(test_no_concurrency())
         UTILITY_TEST_CALL(test_no_constraining())
         UTILITY_TEST_CALL(test_time_progress_linear_controller())

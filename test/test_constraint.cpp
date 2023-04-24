@@ -59,7 +59,7 @@ class TestConstraint {
         auto c = ConstraintBuilder<R>([](I const&, O const&) { return 0.0; }).build();
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto robustness = c.robustness(input, output);
+        auto robustness = c.robustness(input, output, false);
         UTILITY_TEST_PRINT(c)
         UTILITY_TEST_EQUALS(c.group_id(),0)
         UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::NONE)
@@ -78,7 +78,7 @@ class TestConstraint {
                 .build();
         auto input = I(2,{1,2});
         auto output = O(7);
-        auto robustness = c.robustness(input, output);
+        auto robustness = c.robustness(input, output, false);
         UTILITY_TEST_PRINT(c)
         UTILITY_TEST_EQUALS(c.group_id(),1)
         UTILITY_TEST_EQUALS(c.success_action(), ConstraintSuccessAction::DEACTIVATE)

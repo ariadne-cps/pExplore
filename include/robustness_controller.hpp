@@ -44,8 +44,8 @@ template<class R> class RobustnessControllerInterface {
   public:
 
     //! \brief Apply the control to the \a robustness value from a constraint, returning the controlled value
-    //! \details The application may change the state of the controller, this is why the method is not const
-    virtual double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output) = 0;
+    //! \details The application may change the state of the controller if \a update == true, this is why the method is not const
+    virtual double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output, bool update) = 0;
 
     virtual RobustnessControllerInterface<R>* clone() const = 0;
 };
@@ -53,7 +53,7 @@ template<class R> class RobustnessControllerInterface {
 //! \brief Return the original robustness
 template<class R> class IdentityRobustnessController : public RobustnessControllerInterface<R> {
   public:
-    double apply(double robustness, TaskInput<R> const&, TaskOutput<R> const&) override { return robustness; }
+    double apply(double robustness, TaskInput<R> const&, TaskOutput<R> const&, bool) override { return robustness; }
     RobustnessControllerInterface<R>* clone() const override { return new IdentityRobustnessController(); }
 };
 
@@ -64,11 +64,13 @@ template<class R> class TimeProgressLinearRobustnessController : public Robustne
 
     TimeProgressLinearRobustnessController(TimeFunction func, double final_time) : _t_func(func), _final_time(final_time), _accumulated_value(0.0) { }
 
-    double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output) override {
+    double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output, bool update) override {
         double current_time = _t_func(input,output);
         double result = robustness - (current_time-_previous_time) * _accumulated_value;
-        _previous_time = current_time;
-        _accumulated_value += result/(_final_time-current_time);
+        if (update) {
+            _previous_time = current_time;
+            _accumulated_value += result/(_final_time-current_time);
+        }
         return result;
     }
     RobustnessControllerInterface<R>* clone() const override { return new TimeProgressLinearRobustnessController(_t_func,_final_time); }
