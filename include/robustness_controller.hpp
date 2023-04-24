@@ -66,7 +66,7 @@ template<class R> class TimeProgressLinearRobustnessController : public Robustne
 
     double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output, bool update) override {
         double current_time = _t_func(input,output);
-        double result = robustness - (current_time-_previous_time) * _accumulated_value;
+        double result = robustness + (current_time-_previous_time) * _accumulated_value;
         if (update) {
             _previous_time = current_time;
             _accumulated_value += result/(_final_time-current_time);
