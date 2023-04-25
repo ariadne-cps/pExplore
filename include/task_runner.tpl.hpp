@@ -75,12 +75,12 @@ template<class C> void TaskRunnable<C>::set_constraining(ConstrainingSpecificati
     TaskManager::instance().choose_runner_for(*this,constraining);
 }
 
-template<class C> TaskRunnerInterface<C>& TaskRunnable<C>::runner() {
-    return *_runner;
+template<class C> shared_ptr<TaskRunnerInterface<C>>& TaskRunnable<C>::runner() {
+    return _runner;
 }
 
-template<class C> TaskRunnerInterface<C> const& TaskRunnable<C>::runner() const {
-    return *_runner;
+template<class C> shared_ptr<TaskRunnerInterface<C>> const& TaskRunnable<C>::runner() const {
+    return _runner;
 }
 
 template<class C> class TaskRunnerBase : public TaskRunnerInterface<C> {

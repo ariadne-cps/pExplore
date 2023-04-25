@@ -182,8 +182,8 @@ public:
         List<double> result;
         double step = 0.0;
         for (size_t i=0; i<10; ++i) {
-            runner().push(TaskInput<A>(1.0,step));
-            auto output = runner().pull();
+            runner()->push(TaskInput<A>(1.0,step));
+            auto output = runner()->pull();
             result.push_back(output.y);
             step = output.step;
         }

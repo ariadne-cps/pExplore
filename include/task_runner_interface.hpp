@@ -77,8 +77,8 @@ class TaskRunnable : public Configurable<C> {
     //! \brief Set a new runner, useful to override the default runner
     void set_runner(shared_ptr<TaskRunnerInterface<C>> const& runner);
     //! \brief Get the runner
-    TaskRunnerInterface<C>& runner();
-    TaskRunnerInterface<C> const& runner() const;
+    shared_ptr<TaskRunnerInterface<C>>& runner();
+    shared_ptr<TaskRunnerInterface<C>> const& runner() const;
   private:
     shared_ptr<TaskRunnerInterface<C>> _runner;
 };
