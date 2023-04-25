@@ -72,6 +72,7 @@ class TaskRunnable : public Configurable<C> {
   public:
     //! \brief Set the constraining for this runnable, to rank results from multiple configurations
     void set_constraining(ConstrainingSpecification<C> const& constraining);
+    virtual ~TaskRunnable() = default;
   protected:
     TaskRunnable(ConfigurationType const& configuration);
     //! \brief Set a new runner, useful to override the default runner
