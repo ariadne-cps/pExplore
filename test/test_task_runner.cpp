@@ -229,7 +229,7 @@ class TestTaskRunner {
                 .set_failure_kind(ConstraintFailureKind::HARD)
                 .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
                 .build();
-        a.set_constraining({constraint});
+        a.set_constraints({constraint});
 
         HELPER_TEST_FAIL(a.execute())
     }
@@ -243,7 +243,7 @@ class TestTaskRunner {
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
                 .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
                 .build();
-        a.set_constraining({constraint});
+        a.set_constraints({constraint});
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
@@ -258,7 +258,7 @@ class TestTaskRunner {
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset) + o.expensive().value(); })
                 .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
                 .build();
-        a.set_constraining({constraint});
+        a.set_constraints({constraint});
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
@@ -273,7 +273,7 @@ class TestTaskRunner {
         auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
                 .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
                 .build();
-        a.set_constraining({constraint});
+        a.set_constraints({constraint});
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
@@ -305,7 +305,7 @@ class TestTaskRunner {
                 .set_controller(TimeProgressLinearRobustnessController<A>([](I const&, O const& o) { return o.step; },final_time))
                 .set_objective_impact(ConstraintObjectiveImpact::UNSIGNED)
                 .build();
-        a.set_constraining({constraint});
+        a.set_constraints({constraint});
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)

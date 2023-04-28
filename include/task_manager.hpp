@@ -60,10 +60,10 @@ class TaskManager {
     }
 
     //! \brief Choose the proper runner for \a runnable
-    template<class T> void choose_runner_for(TaskRunnable<T>& runnable, ConstrainingSpecification<T> const& constraining) const {
+    template<class T> void choose_runner_for(TaskRunnable<T>& runnable, List<Constraint<T>> const& constraints) const {
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
-        if (_concurrency > 1 and not constraining.has_no_active_constraints() and not cfg.is_singleton())
+        if (_concurrency > 1 and not constraints.empty() and not cfg.is_singleton())
             runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(_concurrency,static_cast<unsigned int>(cfg.search_space().total_points()))));
         else if (not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();
@@ -72,8 +72,13 @@ class TaskManager {
         } else
             runner.reset(new SequentialRunner<T>(cfg));
 
-        runner->task().set_constraining(constraining);
+        runner->task().set_constraints(constraints);
         runnable.set_runner(runner);
+    }
+
+    //! \brief Get the constraining for the \a runnable
+    template<class T> ConstrainingState<T> const& constraining_state_for(TaskRunnable<T> const& runnable) const {
+        return runnable.runner()->task().constraining_state();
     }
 
     unsigned int maximum_concurrency() const;

@@ -70,8 +70,9 @@ class TaskRunnable : public Configurable<C> {
     friend class TaskManager;
     typedef Configuration<C> ConfigurationType;
   public:
-    //! \brief Set the constraining for this runnable, to rank results from multiple configurations
-    void set_constraining(ConstrainingSpecification<C> const& constraining);
+    //! \brief Set the constraints for this runnable, to rank results from multiple configurations
+    void set_constraints(List<Constraint<C>> const& constraining);
+    ConstrainingState<C> const& constraining_state() const;
     virtual ~TaskRunnable() = default;
   protected:
     TaskRunnable(ConfigurationType const& configuration);

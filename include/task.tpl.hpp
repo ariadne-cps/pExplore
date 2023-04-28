@@ -37,7 +37,7 @@
 #include "helper/string.hpp"
 #include "pronest/configuration_search_point.hpp"
 #include "task_interface.hpp"
-#include "constraining_specification.hpp"
+#include "constraining_state.hpp"
 
 namespace pExplore {
 
@@ -55,16 +55,16 @@ class ParameterSearchTaskBase : public TaskInterface<R> {
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
   protected:
-    ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _constraint_set() {}
+    ParameterSearchTaskBase(String const& name = std::string()) : _name(name), _constraining_state() {}
   public:
     String name() const override { return _name; }
-    ConstrainingSpecification<R> const& constraining() const override { return _constraint_set; }
-    void set_constraining(ConstrainingSpecification<R> const& constraint_set) override { _constraint_set = constraint_set; }
-    void update_constraining(InputType const& input, OutputType const& output) override { _constraint_set.update_from(input, output); }
+    ConstrainingState<R> const& constraining_state() const override { return _constraining_state; }
+    void set_constraints(List<Constraint<R>> const& constraints) override { _constraining_state = ConstrainingState<R>(constraints); }
+    void update_constraining_state(InputType const& input, OutputType const& output) override { _constraining_state.update_from(input, output); }
 
   private:
     String const _name;
-    ConstrainingSpecification<R> _constraint_set;
+    ConstrainingState<R> _constraining_state;
 };
 
 } // namespace pExplore

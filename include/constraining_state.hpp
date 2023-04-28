@@ -1,5 +1,5 @@
 /***************************************************************************
- *            constraining_specification.hpp
+ *            constraining_state.hpp
  *
  *  Copyright  2023  Luca Geretti
  *
@@ -30,8 +30,8 @@
  *  \brief Class for defining a time-varying constraining specification and a control strategy to enforce it.
  */
 
-#ifndef PEXPLORE_CONSTRAINING_SPECIFICATION
-#define PEXPLORE_CONSTRAINING_SPECIFICATION
+#ifndef PEXPLORE_CONSTRAINING_STATE
+#define PEXPLORE_CONSTRAINING_STATE
 
 #include "helper/container.hpp"
 #include "helper/writable.hpp"
@@ -45,18 +45,18 @@ using std::to_string;
 using std::ostream;
 using std::min;
 
-template<class R> class ConstrainingSpecification : public WritableInterface {
+template<class R> class ConstrainingState : public WritableInterface {
   public:
     typedef TaskInput<R> InputType;
     typedef TaskOutput<R> OutputType;
 
-    ConstrainingSpecification(List<Constraint<R>> const& constraints) : _states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
+    ConstrainingState(List<Constraint<R>> const& constraints) : _states(List<ConstraintState<R>>()), _num_active_constraints(constraints.size()) {
         for (auto const& c : constraints) {
             _states.push_back(c);
         }
     }
 
-    ConstrainingSpecification() : ConstrainingSpecification(List<Constraint<R>>()) { }
+    ConstrainingState() : ConstrainingState(List<Constraint<R>>()) { }
 
     PointScore evaluate(ConfigurationSearchPoint const& point, InputType const& input, OutputType const& output) const {
         return {point, evaluate(input,output,false)};
@@ -112,9 +112,11 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
 
         Set<size_t> group_ids_to_deactivate;
         auto eval = evaluate(input,output,true);
+        //std::cout << "successes: " << eval.successes() << std::endl;
         for (size_t i=0; i < _states.size(); ++i) {
             auto& s = _states.at(i);
             auto const& c = s.constraint();
+            //std::cout << "i=" << i << "'" << c.name() << "' active?" << s.is_active() << " has_succeeded=" << s.has_succeeded() << " has_failed=" << s.has_failed() << " eval=" << c.robustness(input,output,false) << std::endl;
             if (eval.successes().contains(i) and c.success_action() == ConstraintSuccessAction::DEACTIVATE) {
                 s.set_success();
                 group_ids_to_deactivate.insert(c.group_id());
@@ -130,6 +132,7 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
             auto& s = _states.at(i);
             auto const& c = s.constraint();
             if (group_ids_to_deactivate.contains(c.group_id())) {
+                //std::cout << "deactivated" << std::endl;
                 s.deactivate();
                 --_num_active_constraints;
             }
@@ -158,4 +161,4 @@ template<class R> struct NoActiveConstraintsException : public std::runtime_erro
 
 } // namespace pExplore
 
-#endif // PEXPLORE_CONSTRAINING_SPECIFICATION
+#endif // PEXPLORE_CONSTRAINING_STATE
