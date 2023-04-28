@@ -187,7 +187,7 @@ template<class R> class ConstraintState : public WritableInterface {
     void set_failure() { HELPER_PRECONDITION(not _success) _failure = true; }
 
     ostream& _write(ostream& os) const override {
-        return os << "{'" << _constraint << ", active = " << _active << ", has_succeeded =" << _success << ", has_failed=" << _failure << "}";
+        return os << "{" << _constraint << ", active=" << _active << ", has_succeeded=" << _success << ", has_failed=" << _failure << "}";
     }
 
   private:
