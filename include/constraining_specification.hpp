@@ -115,11 +115,9 @@ template<class R> class ConstrainingSpecification : public WritableInterface {
         for (size_t i=0; i < _states.size(); ++i) {
             auto& s = _states.at(i);
             auto const& c = s.constraint();
-            if (eval.successes().contains(i)) {
+            if (eval.successes().contains(i) and c.success_action() == ConstraintSuccessAction::DEACTIVATE) {
                 s.set_success();
-                if (c.success_action() == ConstraintSuccessAction::DEACTIVATE) {
-                    group_ids_to_deactivate.insert(c.group_id());
-                }
+                group_ids_to_deactivate.insert(c.group_id());
             }
 
             if (eval.hard_failures().contains(i)) {
