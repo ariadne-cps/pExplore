@@ -42,12 +42,12 @@ template<class R> struct TaskOutput;
 
 template<class R> class RobustnessControllerInterface {
   public:
-
     //! \brief Apply the control to the \a robustness value from a constraint, returning the controlled value
     //! \details The application may change the state of the controller if \a update == true, this is why the method is not const
     virtual double apply(double robustness, TaskInput<R> const& input, TaskOutput<R> const& output, bool update) = 0;
 
     virtual RobustnessControllerInterface<R>* clone() const = 0;
+    virtual ~RobustnessControllerInterface() = default;
 };
 
 //! \brief Return the original robustness
