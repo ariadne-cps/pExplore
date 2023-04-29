@@ -247,6 +247,9 @@ class TestTaskRunner {
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
+
+        auto all_values_equal = equality_check(result);
+        HELPER_TEST_ASSERT(not all_values_equal)
     }
 
     void test_uses_expensiveclass() {
@@ -262,6 +265,9 @@ class TestTaskRunner {
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
+
+        auto all_values_equal = equality_check(result);
+        HELPER_TEST_ASSERT(not all_values_equal)
     }
 
     void test_no_concurrency() {
@@ -309,6 +315,9 @@ class TestTaskRunner {
 
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
+
+        auto all_values_equal = equality_check(result);
+        HELPER_TEST_ASSERT(not all_values_equal)
     }
 
     void test() {
