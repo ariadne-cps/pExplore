@@ -41,6 +41,7 @@ using namespace std;
 using namespace ProNest;
 using namespace Helper;
 using namespace pExplore;
+using namespace BetterThreads;
 
 class A;
 
@@ -220,8 +221,8 @@ class TestTaskRunner {
   public:
 
     void test_failure() {
-
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 12.0;
@@ -233,12 +234,12 @@ class TestTaskRunner {
 
         HELPER_TEST_FAIL(a.execute())
 
-        TaskManager::instance().set_concurrency(1);
+        ThreadManager::instance().set_concurrency(1);
     }
 
     void test_success() {
 
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
@@ -252,12 +253,12 @@ class TestTaskRunner {
 
         HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
 
-        TaskManager::instance().set_concurrency(1);
+        ThreadManager::instance().set_concurrency(1);
     }
 
     void test_uses_expensiveclass() {
 
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
@@ -276,7 +277,7 @@ class TestTaskRunner {
 
     void test_no_concurrency() {
 
-        TaskManager::instance().set_concurrency(1);
+        ThreadManager::instance().set_concurrency(1);
 
         auto a = _get_runnable();
         double offset = 8.0;
@@ -298,7 +299,7 @@ class TestTaskRunner {
 
     void test_no_constraining() {
 
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         List<double> result = a.execute();
@@ -309,12 +310,12 @@ class TestTaskRunner {
 
         HELPER_TEST_ASSERT(TaskManager::instance().scores().empty())
 
-        TaskManager::instance().set_concurrency(1);
+        ThreadManager::instance().set_concurrency(1);
     }
 
     void test_time_progress_linear_controller() {
 
-        TaskManager::instance().set_concurrency(TaskManager::instance().maximum_concurrency());
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
 
         auto a = _get_runnable();
         double offset = 8.0;
@@ -330,7 +331,7 @@ class TestTaskRunner {
 
         HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
 
-        TaskManager::instance().set_concurrency(1);
+        ThreadManager::instance().set_concurrency(1);
     }
 
     void test() {

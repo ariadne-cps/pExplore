@@ -75,10 +75,11 @@ class TaskManager {
 
     //! \brief Choose the proper runner for \a runnable
     template<class T> void choose_runner_for(TaskRunnable<T>& runnable, List<Constraint<T>> const& constraints) const {
+        auto concurrency = BetterThreads::ThreadManager::instance().concurrency();
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
-        if (_concurrency > 1 and not constraints.empty() and not cfg.is_singleton())
-            runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(_concurrency,static_cast<unsigned int>(cfg.search_space().total_points()))));
+        if (concurrency > 1 and not constraints.empty() and not cfg.is_singleton())
+            runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(concurrency,static_cast<unsigned long>(cfg.search_space().total_points()))));
         else if (not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();
             CONCLOG_PRINTLN_AT(1,"The configuration is not singleton: using point " << point << " for sequential running.");
@@ -95,11 +96,6 @@ class TaskManager {
         return runnable.runner()->task().constraining_state();
     }
 
-    unsigned int maximum_concurrency() const;
-    unsigned int concurrency() const;
-
-    void set_concurrency(unsigned int value);
-
     void set_exploration(ExplorationInterface const& exploration);
 
     //! \brief The best scores saved
@@ -115,8 +111,6 @@ class TaskManager {
     List<int> optimal_point() const;
 
   private:
-    unsigned int const _maximum_concurrency;
-    unsigned int _concurrency;
     std::shared_ptr<ExplorationInterface> _exploration;
     std::mutex _data_mutex;
     List<Set<PointScore>> _scores;

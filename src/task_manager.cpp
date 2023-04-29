@@ -28,27 +28,14 @@
 
 #include "conclog/logging.hpp"
 #include "helper/macros.hpp"
+#include "betterthreads/thread_manager.hpp"
 #include "task_manager.hpp"
 
 namespace pExplore {
 
 using std::make_pair;
 
-TaskManager::TaskManager() : _maximum_concurrency(std::thread::hardware_concurrency()), _concurrency(1), _exploration(new ShiftAndKeepBestHalfExploration()) {}
-
-unsigned int TaskManager::maximum_concurrency() const {
-    return _maximum_concurrency;
-}
-
-unsigned int TaskManager::concurrency() const {
-    return _concurrency;
-}
-
-void TaskManager::set_concurrency(unsigned int value) {
-    HELPER_PRECONDITION(value <= _maximum_concurrency and value > 0)
-    std::lock_guard<std::mutex> lock(_data_mutex);
-    _concurrency = value;
-}
+TaskManager::TaskManager() : _exploration(new ShiftAndKeepBestHalfExploration()) {}
 
 void TaskManager::set_exploration(ExplorationInterface const& exploration) {
     _exploration.reset(exploration.clone());

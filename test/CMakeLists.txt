@@ -1,7 +1,6 @@
 include(CTest)
 
 set(UNIT_TESTS
-    test_task_manager
     test_constraint
     test_score
     test_task_runner
