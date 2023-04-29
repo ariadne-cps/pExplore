@@ -116,7 +116,7 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
     typedef Buffer<InputBufferContentType> InputBufferType;
     typedef Buffer<OutputBufferContentType> OutputBufferType;
   protected:
-    ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, unsigned int concurrency);
+    ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, size_t concurrency);
   public:
     virtual ~ParameterSearchRunner();
 
@@ -126,7 +126,7 @@ template<class C> class ParameterSearchRunner final : public TaskRunnerBase<C> {
 private:
     void _loop();
 private:
-    unsigned int const _concurrency; // Number of threads to be used
+    size_t const _concurrency; // Number of threads to be used
     std::atomic<unsigned int> _failures; // Number of task failures after a given push, reset during pulling
     Buffer<InputType> _last_used_input;
     std::queue<ConfigurationSearchPoint> _points;

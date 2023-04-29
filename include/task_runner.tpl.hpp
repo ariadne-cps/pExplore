@@ -186,7 +186,7 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
     }
 }
 
-template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, unsigned int concurrency)
+template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, size_t concurrency)
         : TaskRunnerBase<C>(configuration), _concurrency(concurrency),
           _failures(0), _last_used_input({1}), _points(), _exploration(exploration.clone()),
           _input_buffer({concurrency}),_output_buffer({concurrency}),
