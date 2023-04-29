@@ -65,7 +65,6 @@ class TaskManager {
         auto const& cfg = runnable.configuration();
         if (not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();
-            CONCLOG_PRINTLN_AT(1,"The configuration is not singleton: using point " << point << " for sequential running.");
             runner.reset(new SequentialRunner<T>(make_singleton(cfg,point)));
         } else
             runner.reset(new SequentialRunner<T>(cfg));
@@ -75,10 +74,11 @@ class TaskManager {
 
     //! \brief Choose the proper runner for \a runnable
     template<class T> void choose_runner_for(TaskRunnable<T>& runnable, List<Constraint<T>> const& constraints) const {
+        HELPER_PRECONDITION(not constraints.empty())
         auto concurrency = BetterThreads::ThreadManager::instance().concurrency();
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
-        if (concurrency > 1 and not constraints.empty() and not cfg.is_singleton())
+        if (concurrency > 1 and not cfg.is_singleton())
             runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(concurrency,static_cast<unsigned long>(cfg.search_space().total_points()))));
         else if (not cfg.is_singleton()) {
             auto point = cfg.search_space().initial_point();
