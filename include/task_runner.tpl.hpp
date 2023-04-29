@@ -64,7 +64,7 @@ private:
 };
 
 template<class C> TaskRunnable<C>::TaskRunnable(ConfigurationType const& configuration) : Configurable<C>(configuration) {
-    TaskManager::instance().choose_runner_for(*this, {});
+    TaskManager::instance().choose_runner_for(*this);
 }
 
 template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterface<C>> const& runner) {
