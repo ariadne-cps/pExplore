@@ -232,6 +232,8 @@ class TestTaskRunner {
         a.set_constraints({constraint});
 
         HELPER_TEST_FAIL(a.execute())
+
+        TaskManager::instance().set_concurrency(1);
     }
 
     void test_success() {
@@ -248,8 +250,9 @@ class TestTaskRunner {
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
 
-        auto all_values_equal = equality_check(result);
-        HELPER_TEST_ASSERT(not all_values_equal)
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
+
+        TaskManager::instance().set_concurrency(1);
     }
 
     void test_uses_expensiveclass() {
@@ -266,8 +269,9 @@ class TestTaskRunner {
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
 
-        auto all_values_equal = equality_check(result);
-        HELPER_TEST_ASSERT(not all_values_equal)
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
+
+        TaskManager::instance().clear_scores();
     }
 
     void test_no_concurrency() {
@@ -286,6 +290,10 @@ class TestTaskRunner {
         
         auto all_values_equal = equality_check(result);
         HELPER_TEST_ASSERT(all_values_equal)
+
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().empty())
+
+        TaskManager::instance().clear_scores();
     }
 
     void test_no_constraining() {
@@ -298,6 +306,10 @@ class TestTaskRunner {
 
         auto all_values_equal = equality_check(result);
         HELPER_TEST_ASSERT(all_values_equal)
+
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().empty())
+
+        TaskManager::instance().set_concurrency(1);
     }
 
     void test_time_progress_linear_controller() {
@@ -316,8 +328,9 @@ class TestTaskRunner {
         auto result = a.execute();
         HELPER_TEST_PRINT(result)
 
-        auto all_values_equal = equality_check(result);
-        HELPER_TEST_ASSERT(not all_values_equal)
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
+
+        TaskManager::instance().set_concurrency(1);
     }
 
     void test() {

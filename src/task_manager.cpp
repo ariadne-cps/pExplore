@@ -54,29 +54,37 @@ void TaskManager::set_exploration(ExplorationInterface const& exploration) {
     _exploration.reset(exploration.clone());
 }
 
-List<PointScore> TaskManager::best_rankings() const {
-    return _best_rankings;
+List<Set<PointScore>> const& TaskManager::scores() const {
+    return _scores;
 }
 
-void TaskManager::append_best_ranking(PointScore const& ranking) {
+List<PointScore> TaskManager::best_scores() const {
+    List<PointScore> result;
+    for (auto const& e : _scores)
+        result.append(*e.begin());
+    return result;
+}
+
+void TaskManager::append_scores(Set<PointScore> const& scores) {
     std::lock_guard<std::mutex> lock(_data_mutex);
-    _best_rankings.push_back(ranking);
+    _scores.push_back(scores);
 }
 
-void TaskManager::clear_best_rankings() {
-    _best_rankings.clear();
+void TaskManager::clear_scores() {
+    _scores.clear();
 }
 
 List<int> TaskManager::optimal_point() const {
     List<int> result;
-    if (not _best_rankings.empty()) {
-        auto space = _best_rankings.front().point().space();
+    auto best = best_scores();
+    if (not best.empty()) {
+        auto space = best.front().point().space();
         auto dimension = space.dimension();
 
         List<Map<int,size_t>> frequencies;
         for (size_t i=0; i<dimension; ++i) frequencies.push_back(Map<int,size_t>());
-        for (auto const& ranking : _best_rankings) {
-            auto coordinates = ranking.point().coordinates();
+        for (auto const& s : best) {
+            auto coordinates = s.point().coordinates();
             for (size_t i=0; i<dimension; ++i) {
                 auto iter = frequencies[i].find(coordinates[i]);
                 if (iter == frequencies[i].end()) frequencies[i].insert(make_pair(coordinates[i],1));
@@ -102,18 +110,19 @@ List<int> TaskManager::optimal_point() const {
     return result;
 }
 
-void TaskManager::print_best_rankings() const {
-    if (not _best_rankings.empty()) {
+void TaskManager::print_best_scores() const {
+    auto best = best_scores();
+    if (not best.empty()) {
         std::ofstream file;
         file.open("points.m");
-        auto space = _best_rankings.front().point().space();
+        auto space = best.front().point().space();
         auto dimension = space.dimension();
-        auto size = _best_rankings.size();
+        auto size = best.size();
         file << "x = [1:" << size << "];\n";
         Map<size_t,List<int>> values;
         List<size_t> soft_failures;
         for (size_t i=0; i<dimension; ++i) values.insert(make_pair(i,List<int>()));
-        for (auto const& ranking : _best_rankings) {
+        for (auto const& ranking : best) {
             auto const& point = ranking.point();
             for (size_t i=0; i<dimension; ++i) values.at(i).push_back(point.coordinates()[i]);
         }

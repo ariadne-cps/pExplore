@@ -102,13 +102,14 @@ class TaskManager {
 
     void set_exploration(ExplorationInterface const& exploration);
 
-    //! \brief The best points saved
-    List<PointScore> best_rankings() const;
-    void append_best_ranking(PointScore const& point);
-    void clear_best_rankings();
+    //! \brief The best scores saved
+    List<PointScore> best_scores() const;
+    void append_scores(Set<PointScore> const& scores);
+    List<Set<PointScore>> const& scores() const;
+    void clear_scores();
 
-    //! \brief Print best rankings in a .m file for plotting
-    void print_best_rankings() const;
+    //! \brief Print best scores in a .m file for plotting
+    void print_best_scores() const;
 
     //! \brief Return the optimal point (i.e., the most common value for all dimensions)
     List<int> optimal_point() const;
@@ -118,7 +119,7 @@ class TaskManager {
     unsigned int _concurrency;
     std::shared_ptr<ExplorationInterface> _exploration;
     std::mutex _data_mutex;
-    List<PointScore> _best_rankings;
+    List<Set<PointScore>> _scores;
 };
 
 } // namespace pExplore
