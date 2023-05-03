@@ -68,30 +68,17 @@ List<int> TaskManager::optimal_point() const {
         auto space = best.front().point().space();
         auto dimension = space.dimension();
 
-        List<Map<int,size_t>> frequencies;
-        for (size_t i=0; i<dimension; ++i) frequencies.push_back(Map<int,size_t>());
+        Map<int,double> sums;
+        for (size_t i=0; i<dimension; ++i) sums.insert(i,0.0);
         for (auto const& s : best) {
             auto coordinates = s.point().coordinates();
             for (size_t i=0; i<dimension; ++i) {
-                auto iter = frequencies[i].find(coordinates[i]);
-                if (iter == frequencies[i].end()) frequencies[i].insert(make_pair(coordinates[i],1));
-                else frequencies[i].at(coordinates[i])++;
+                sums[i] += coordinates[i];
             }
         }
 
         for (size_t i=0; i<dimension; ++i) {
-            auto freq_it = frequencies[i].begin();
-            int best_value = freq_it->first;
-            size_t best_frequency = freq_it->second;
-            ++freq_it;
-            while (freq_it != frequencies[i].end()) {
-                if (freq_it->second >best_frequency) {
-                    best_value = freq_it->first;
-                    best_frequency = freq_it->second;
-                }
-                ++freq_it;
-            }
-            result.push_back(best_value);
+            result.push_back(round(sums[i]/best.size()));
         }
     }
     return result;
