@@ -68,17 +68,17 @@ List<int> TaskManager::optimal_point() const {
         auto space = best.front().point().space();
         auto dimension = space.dimension();
 
-        Map<int,double> sums;
+        Map<size_t,double> sums;
         for (size_t i=0; i<dimension; ++i) sums.insert(i,0.0);
         for (auto const& s : best) {
             auto coordinates = s.point().coordinates();
             for (size_t i=0; i<dimension; ++i) {
-                sums[i] += coordinates[i];
+                sums[i] += static_cast<double>(coordinates[i]);
             }
         }
 
         for (size_t i=0; i<dimension; ++i) {
-            result.push_back(round(sums[i]/best.size()));
+            result.push_back(static_cast<int>(round(sums[i]/best.size())));
         }
     }
     return result;
