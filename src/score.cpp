@@ -70,7 +70,7 @@ bool Score::operator==(Score const& e) const {
 }
 
 ostream& Score::_write(ostream& os) const {
-    return os << "{ hard_failures " << hard_failures() << ", soft_failures " << soft_failures() << ", objective " << objective() << "}";
+    return os << "{ successes " << successes() << ", hard_failures " << hard_failures() << ", soft_failures " << soft_failures() << ", objective " << objective() << "}";
 }
 
 PointScore::PointScore(ConfigurationSearchPoint const& p, Score const& score)
@@ -85,14 +85,12 @@ Score const& PointScore::score() const {
 }
 
 bool PointScore::operator<(PointScore const& e) const {
-    if (_score == e.score()) {
-        return _point < e._point;
-    } else {
-        return _score < e.score();
-    }
+    if (_score == e.score()) return _point < e._point;
+    else return _score < e.score();
 }
 
 ostream& PointScore::_write(ostream& os) const {
     return os << "{" << _point << ": " << _score << "}";
 }
+
 } // namespace pExplore
