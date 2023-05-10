@@ -44,8 +44,8 @@ using Helper::Set;
 //! \brief Interface for search strategies
 class ExplorationInterface {
   public:
-    //! \brief Make the next points from set of points from \a rankings, preserving the size
-    virtual Set<ConfigurationSearchPoint> next_points_from(Set<PointScore> const& rankings) const = 0;
+    //! \brief Make the next points from set of points from \a rankings, up to the given \a size
+    virtual Set<ConfigurationSearchPoint> next_points_from(Set<PointScore> const& rankings, size_t size) const = 0;
 
     virtual ExplorationInterface* clone() const = 0;
     virtual ~ExplorationInterface() = default;
@@ -54,7 +54,7 @@ class ExplorationInterface {
 //! \brief Keeps the best half points, to which we add the shifted points from each (with a distance 1 if possible)
 class ShiftAndKeepBestHalfExploration : public ExplorationInterface {
   public:
-    Set<ConfigurationSearchPoint> next_points_from(Set<PointScore> const& rankings) const override;
+    Set<ConfigurationSearchPoint> next_points_from(Set<PointScore> const& rankings, size_t size) const override;
     ExplorationInterface* clone() const override;
 };
 
