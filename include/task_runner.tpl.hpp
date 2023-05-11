@@ -233,8 +233,9 @@ template<class C> auto ParameterSearchRunner<C>::pull() -> OutputType {
         point_outputs.insert(Pair<ConfigurationSearchPoint,OutputType>(data.point_score().point(),data.output()));
     }
     HELPER_ASSERT_EQUAL(points.size(),_concurrency)
+    HELPER_ASSERT_EQUAL(point_scores.size(),_concurrency)
 
-    auto new_points = _exploration->next_points_from(point_scores,_concurrency);
+    auto new_points = _exploration->next_points_from(point_scores);
     for (auto const& p : new_points) _points.push(p);
     CONCLOG_PRINTLN_VAR(new_points);
 
