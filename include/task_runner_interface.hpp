@@ -72,7 +72,8 @@ class TaskRunnable : public Configurable<C> {
   public:
     //! \brief Set the constraints for this runnable, to rank results from multiple configurations
     void set_constraints(List<Constraint<C>> const& constraining);
-    ConstrainingState<C> const& constraining_state() const;
+    //! \brief Set the initial point, instead of generating a random one automatically
+    void set_initial_point(ConfigurationSearchPoint const& initial_point);
     virtual ~TaskRunnable() = default;
   protected:
     TaskRunnable(ConfigurationType const& configuration);

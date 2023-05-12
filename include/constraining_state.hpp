@@ -145,6 +145,14 @@ template<class R> class ConstrainingState : public WritableInterface {
         return _states;
     }
 
+    List<Constraint<R>> constraints() const {
+        List<Constraint<R>> result;
+        for (auto const& s : _states) {
+            result.push_back(s.constraint());
+        }
+        return result;
+    }
+
     virtual ostream& _write(ostream& os) const {
         return os << "{" << _states << ": " << "}";
     }

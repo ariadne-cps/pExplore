@@ -72,11 +72,11 @@ template<class C> void TaskRunnable<C>::set_runner(shared_ptr<TaskRunnerInterfac
 }
 
 template<class C> void TaskRunnable<C>::set_constraints(List<Constraint<C>> const& constraints) {
-    TaskManager::instance().choose_runner_for(*this,constraints);
+    TaskManager::instance().choose_runner_for(*this,constraints,this->configuration().search_space().initial_point());
 }
 
-template<class C> ConstrainingState<C> const& TaskRunnable<C>::constraining_state() const {
-    return TaskManager::instance().constraining_state_for(*this);
+template<class C> void TaskRunnable<C>::set_initial_point(ConfigurationSearchPoint const& initial_point) {
+    TaskManager::instance().choose_runner_for(*this,this->runner()->task().constraining_state().constraints(),initial_point);
 }
 
 template<class C> shared_ptr<TaskRunnerInterface<C>>& TaskRunnable<C>::runner() {
@@ -186,9 +186,9 @@ template<class C> void ParameterSearchRunner<C>::_loop() {
     }
 }
 
-template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, size_t concurrency)
+template<class C> ParameterSearchRunner<C>::ParameterSearchRunner(ConfigurationType const& configuration, ExplorationInterface const& exploration, ConfigurationSearchPoint const& initial_point, size_t concurrency)
         : TaskRunnerBase<C>(configuration), _concurrency(concurrency),
-          _failures(0), _last_used_input({1}), _points(), _exploration(exploration.clone()),
+          _failures(0), _last_used_input({1}), _initial_point(initial_point), _points(), _exploration(exploration.clone()),
           _input_buffer({concurrency}),_output_buffer({concurrency}),
           _active(false), _terminate(false) {
     for (unsigned int i=0; i<concurrency; ++i)
@@ -203,7 +203,7 @@ template<class C> ParameterSearchRunner<C>::~ParameterSearchRunner() {
 template<class C> void ParameterSearchRunner<C>::push(InputType const& input) {
     if (not _active) {
         _active = true;
-        auto shifted = this->configuration().search_space().initial_point().make_random_shifted(_concurrency);
+        auto shifted = _initial_point.make_random_shifted(_concurrency);
         for (auto const& point : shifted) _points.push(point);
         for (auto& thread : _threads) thread->activate();
     }

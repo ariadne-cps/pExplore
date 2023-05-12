@@ -73,27 +73,21 @@ class TaskManager {
     }
 
     //! \brief Choose the proper runner for \a runnable
-    template<class T> void choose_runner_for(TaskRunnable<T>& runnable, List<Constraint<T>> const& constraints) const {
+    template<class T> void choose_runner_for(TaskRunnable<T>& runnable, List<Constraint<T>> const& constraints, ConfigurationSearchPoint const& initial_point) const {
         HELPER_PRECONDITION(not constraints.empty())
         auto concurrency = BetterThreads::ThreadManager::instance().concurrency();
         std::shared_ptr<TaskRunnerInterface<T>> runner;
         auto const& cfg = runnable.configuration();
-        if (concurrency > 1 and not cfg.is_singleton())
-            runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,std::min(concurrency,cfg.search_space().total_points())));
-        else if (not cfg.is_singleton()) {
-            auto point = cfg.search_space().initial_point();
-            CONCLOG_PRINTLN_AT(1,"The configuration is not singleton: using point " << point << " for sequential running.");
-            runner.reset(new SequentialRunner<T>(make_singleton(cfg,point)));
+        if (concurrency > 1 and not cfg.is_singleton()) {
+            runner.reset(new ParameterSearchRunner<T>(cfg,*_exploration,initial_point,std::min(concurrency,cfg.search_space().total_points())));
+        } else if (not cfg.is_singleton()) {
+            CONCLOG_PRINTLN_AT(1,"The configuration is not singleton: using initial point " << initial_point << " for sequential running.");
+            runner.reset(new SequentialRunner<T>(make_singleton(cfg,initial_point)));
         } else
             runner.reset(new SequentialRunner<T>(cfg));
 
         runner->task().set_constraints(constraints);
         runnable.set_runner(runner);
-    }
-
-    //! \brief Get the constraining for the \a runnable
-    template<class T> ConstrainingState<T> const& constraining_state_for(TaskRunnable<T> const& runnable) const {
-        return runnable.runner()->task().constraining_state();
     }
 
     void set_exploration(ExplorationInterface const& exploration);

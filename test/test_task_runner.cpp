@@ -313,6 +313,28 @@ class TestTaskRunner {
         ThreadManager::instance().set_concurrency(1);
     }
 
+    void test_choose_point() {
+
+        ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
+
+        auto a = _get_runnable();
+        double offset = 8.0;
+        auto constraint = ConstraintBuilder<A>([offset](I const&, O const& o) { return (o.y - offset) * (o.y - offset); })
+                .set_objective_impact(ConstraintObjectiveImpact::SIGNED)
+                .build();
+        a.set_constraints({constraint});
+        auto initial_point = a.configuration().search_space().initial_point();
+        HELPER_TEST_PRINT(initial_point)
+        a.set_initial_point(initial_point);
+
+        auto result = a.execute();
+        HELPER_TEST_PRINT(result)
+
+        HELPER_TEST_ASSERT(TaskManager::instance().scores().at(0).size() > 1)
+
+        ThreadManager::instance().set_concurrency(1);
+    }
+
     void test_time_progress_linear_controller() {
 
         ThreadManager::instance().set_concurrency(ThreadManager::instance().maximum_concurrency());
@@ -340,6 +362,7 @@ class TestTaskRunner {
         HELPER_TEST_CALL(test_uses_expensiveclass())
         HELPER_TEST_CALL(test_no_concurrency())
         HELPER_TEST_CALL(test_no_constraining())
+        HELPER_TEST_CALL(test_choose_point())
         HELPER_TEST_CALL(test_time_progress_linear_controller())
     }
 };
