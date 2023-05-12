@@ -79,6 +79,10 @@ template<class C> void TaskRunnable<C>::set_initial_point(ConfigurationSearchPoi
     TaskManager::instance().choose_runner_for(*this,this->runner()->task().constraining_state().constraints(),initial_point);
 }
 
+template<class C> ConstrainingState<C> const& TaskRunnable<C>::constraining_state() const {
+    return this->runner()->task().constraining_state();
+}
+
 template<class C> shared_ptr<TaskRunnerInterface<C>>& TaskRunnable<C>::runner() {
     return _runner;
 }

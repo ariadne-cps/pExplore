@@ -74,6 +74,8 @@ class TaskRunnable : public Configurable<C> {
     void set_constraints(List<Constraint<C>> const& constraining);
     //! \brief Set the initial point, instead of generating a random one automatically
     void set_initial_point(ConfigurationSearchPoint const& initial_point);
+    //! \brief The constraining state held by the task
+    ConstrainingState<C> const& constraining_state() const;
     virtual ~TaskRunnable() = default;
   protected:
     TaskRunnable(ConfigurationType const& configuration);
